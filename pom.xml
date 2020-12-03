@@ -4,7 +4,7 @@
 
 	<groupId>com.kiwigrid</groupId>
 	<artifactId>helm-maven-plugin</artifactId>
-	<version>5.7-SNAPSHOT</version>
+	<version>5.7</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>${project.groupId}:${project.artifactId}</name>
@@ -46,19 +46,18 @@
 		<tag>HEAD</tag>
 	</scm>
 	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-nexus</id>
-			<name>Sonatype Nexus Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-		</snapshotRepository>
 		<repository>
-			<id>sonatype-nexus</id>
-			<name>Nexus Release Repository</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>gitlab-maven-22866809</id>
+			<url>https://gitlab.com/api/v4/projects/${gitlab-project-id}/packages/maven</url>
 		</repository>
+		<snapshotRepository>
+			<id>gitlab-maven-22866809</id>
+			<url>https://gitlab.com/api/v4/projects/${gitlab-project-id}/packages/maven</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<properties>
+		<gitlab-project-id>22866809</gitlab-project-id>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -126,6 +125,13 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>gitlab-maven</id>
+			<url>https://gitlab.com/api/v4/projects/${gitlab-project-id}/packages/maven</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<pluginManagement>
