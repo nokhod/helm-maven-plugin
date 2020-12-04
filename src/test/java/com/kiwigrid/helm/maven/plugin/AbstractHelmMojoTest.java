@@ -1,21 +1,6 @@
 package com.kiwigrid.helm.maven.plugin;
 
-import static java.nio.file.Files.write;
-import static java.util.Arrays.asList;
-import static org.apache.commons.io.FileUtils.deleteQuietly;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doReturn;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.jupiter.api.AfterEach;
@@ -23,6 +8,24 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+import static java.nio.file.Files.write;
+import static java.util.Arrays.asList;
+import static org.apache.commons.io.FileUtils.deleteQuietly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
 
 class AbstractHelmMojoTest {
 
@@ -39,7 +42,7 @@ class AbstractHelmMojoTest {
 
         chartDir = getBaseChartsDirectory().toString();
         excludeDir1 = chartDir + File.separator + "exclude1";
-        excludeDir2= chartDir + File.separator + "exclude2";
+        excludeDir2 = chartDir + File.separator + "exclude2";
 
         subjectSpy = Mockito.spy(new NoopHelmMojo());
         testPath = Files.createTempDirectory("test").toAbsolutePath();
@@ -53,6 +56,17 @@ class AbstractHelmMojoTest {
         List<String> expected = asList(chartDir, excludeDir1, excludeDir2);
 
         assertTrue(chartDirectories.containsAll(expected), "Charts dirs: " + chartDirectories + ", should contain all expected dirs: " + expected);
+    }
+
+    @Test
+    void testOverrideValues() {
+        Map<String, String> override = ImmutableMap.<String, String>builder()
+                .put(
+                        "ingress.annotations.external-dns.alpha.kubernetes.io",
+                        "{'target': 'NADA'}")
+                .build();
+        final String result = AbstractHelmMojo.appendOverrideMap(override);
+        assertNotNull(result);
     }
 
 
@@ -89,7 +103,7 @@ class AbstractHelmMojoTest {
 
             subjectSpy.setUseLocalHelmBinary(true);
             subjectSpy.setAutoDetectLocalHelmBinary(true);
-            doReturn(new String[]{ testPath.toAbsolutePath().toString() }).when(subjectSpy).getPathsFromEnvironmentVariables();
+            doReturn(new String[]{testPath.toAbsolutePath().toString()}).when(subjectSpy).getPathsFromEnvironmentVariables();
         }
 
         @Test
@@ -142,14 +156,18 @@ class AbstractHelmMojoTest {
         }
     }
 
-    private Path addHelmToTestPath() throws IOException { return write(testHelmExecutablePath, new byte[]{}); }
+    private Path addHelmToTestPath() throws IOException {
+        return write(testHelmExecutablePath, new byte[]{});
+    }
 
     private Path getBaseChartsDirectory() {
-    	return new File(getClass().getResource("Chart.yaml").getFile()).toPath().getParent();
+        return new File(getClass().getResource("Chart.yaml").getFile()).toPath().getParent();
     }
 
     @AfterEach
-    void tearDown() { deleteQuietly(testPath.toFile()); }
+    void tearDown() {
+        deleteQuietly(testPath.toFile());
+    }
 
     private static class NoopHelmMojo extends AbstractHelmMojo {
 

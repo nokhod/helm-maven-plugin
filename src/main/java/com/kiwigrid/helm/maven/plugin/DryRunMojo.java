@@ -1,5 +1,6 @@
 package com.kiwigrid.helm.maven.plugin;
 
+import lombok.Data;
 import lombok.Value;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -14,7 +15,7 @@ import org.codehaus.plexus.util.StringUtils;
  * @author Axel Koehler
  * @since 14.11.17
  */
-@Value
+@Data
 @Mojo(name = "dry-run", defaultPhase = LifecyclePhase.TEST)
 public class DryRunMojo extends AbstractHelmMojo {
 
