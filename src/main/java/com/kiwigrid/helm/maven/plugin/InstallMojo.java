@@ -27,21 +27,11 @@ public class InstallMojo extends AbstractHelmMojo {
         for (String inputDirectory : getChartDirectories(getChartDirectory())) {
             getLog().info("\n\ninstalling the chart " + inputDirectory + "...");
 
-            final String command = new StringBuilder()
-                    .append(getHelmExecutablePath())
-                    .append(" install ")
-                    .append(isNotEmpty(getReleaseName()) ? format(" %s ",getReleaseName()) : " --generate-name ")
-                    .append(inputDirectory)
-                    .append(isNotEmpty(getNamespace()) ? format(" -n %s ", getNamespace().toLowerCase(Locale.ROOT)) : EMPTY)
-                    .append(isVerbose() ? " --debug " : EMPTY)
-                    .append(isNotEmpty(getRegistryConfig()) ? format(" --registry-config=%s ", getRegistryConfig()) : EMPTY)
-                    .append(isNotEmpty(getRepositoryCache()) ? format(" --repository-cache=%s ", getRepositoryCache()) : EMPTY)
-                    .append(isNotEmpty(getRepositoryConfig()) ? format(" --repository-config=%s ", getRepositoryConfig()) : EMPTY)
-                    .append(getValuesOptions()).toString();
+            final String command = getCommand("install", inputDirectory);
 
             getLog().debug("executing helm command: " + command);
 
-            callCli(command, "There are test failures", isVerbose());
+            callCli(command, "There are test failures");
         }
     }
 }

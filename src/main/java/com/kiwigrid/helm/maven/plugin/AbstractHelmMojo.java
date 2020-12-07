@@ -34,6 +34,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -41,6 +42,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -148,6 +151,10 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         return map != null && !map.isEmpty();
     }
 
+    private static <K, V> boolean isNotEmpty(String value) {
+        return StringUtils.isNotEmpty(value);
+    }
+
     Path getHelmExecutablePath() throws MojoExecutionException {
 
         String helmExecutable = SystemUtils.IS_OS_WINDOWS ? "helm.exe" : "helm";
@@ -191,7 +198,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
      * @param verbose      logs STDOUT to Maven info log
      * @throws MojoExecutionException on error
      */
-    void callCli(String command, String errorMessage, final boolean verbose) throws MojoExecutionException {
+    void callCli(String command, String errorMessage) throws MojoExecutionException {
 
         int exitValue;
 
@@ -291,7 +298,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         String uploadUrl = uploadRepoStable.getUrl();
         if (chartVersion != null && chartVersion.endsWith("-SNAPSHOT")
                 && uploadRepoSnapshot != null
-                && StringUtils.isNotEmpty(uploadRepoSnapshot.getUrl())) {
+                && isNotEmpty(uploadRepoSnapshot.getUrl())) {
             uploadUrl = uploadRepoSnapshot.getUrl();
         }
 
@@ -301,7 +308,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     HelmRepository getHelmUploadRepo() {
         if (chartVersion != null && chartVersion.endsWith("-SNAPSHOT")
                 && uploadRepoSnapshot != null
-                && StringUtils.isNotEmpty(uploadRepoSnapshot.getUrl())) {
+                && isNotEmpty(uploadRepoSnapshot.getUrl())) {
             return uploadRepoSnapshot;
         }
         return uploadRepoStable;
@@ -398,5 +405,20 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         } else {
             return getKeyValue(key, value);
         }
+    }
+
+    protected String getCommand(String action, String inputDirectory) throws MojoExecutionException {
+
+        return new StringBuilder()
+                .append(getHelmExecutablePath())
+                .append(format(" %s ", action))
+                .append(isNotEmpty(getReleaseName()) ? format(" %s ", getReleaseName()) : " --generate-name ")
+                .append(inputDirectory)
+                .append(isNotEmpty(getNamespace()) ? format(" -n %s ", getNamespace().toLowerCase(Locale.ROOT)) : EMPTY)
+                .append(isVerbose() ? " --debug " : EMPTY)
+                .append(isNotEmpty(getRegistryConfig()) ? format(" --registry-config=%s ", getRegistryConfig()) : EMPTY)
+                .append(isNotEmpty(getRepositoryCache()) ? format(" --repository-cache=%s ", getRepositoryCache()) : EMPTY)
+                .append(isNotEmpty(getRepositoryConfig()) ? format(" --repository-config=%s ", getRepositoryConfig()) : EMPTY)
+                .append(getValuesOptions()).toString();
     }
 }

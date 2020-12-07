@@ -89,8 +89,7 @@ public class InitMojo extends AbstractHelmMojo {
                             + (StringUtils.isNotEmpty(getRepositoryConfig()) ?
                             " --repository-config " + getRepositoryConfig() :
                             ""),
-                    "Unable add repo",
-                    false);
+                    "Unable add repo");
         }
 
         if (getHelmExtraRepos() != null) {
@@ -106,8 +105,7 @@ public class InitMojo extends AbstractHelmMojo {
                                 + (StringUtils.isNotEmpty(getRepositoryCache()) ? " --repository-cache=" + getRepositoryCache() : "")
                                 + (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : "")
                                 + (auth != null ? " --username=" + auth.getUserName() + " --password=" + String.valueOf(auth.getPassword()) : ""),
-                        "Unable add repo",
-                        false);
+                        "Unable add repo");
             }
         }
     }
@@ -203,7 +201,7 @@ public class InitMojo extends AbstractHelmMojo {
     }
 
     private void verifyLocalHelmBinary() throws MojoExecutionException {
-        callCli(getHelmExecutablePath() + " version", "Unable to verify local HELM binary", false);
+        callCli(getHelmExecutablePath() + " version", "Unable to verify local HELM binary");
     }
 
     private ArchiveInputStream createArchiverInputStream(InputStream is) throws MojoExecutionException {

@@ -41,7 +41,7 @@ public class InitMojoTest {
 	public void initMojoHappyPathWhenDownloadHelm(String os, InitMojo mojo) throws Exception {
 
 		// prepare execution
-		doNothing().when(mojo).callCli(contains("helm "), anyString(), anyBoolean());
+		doNothing().when(mojo).callCli(contains("helm "), anyString());
 		// getHelmExecuteablePath is system-depending and has to be mocked for that reason
 		// as SystemUtils.IS_OS_WINDOWS will always return false on a *NIX system
 		doReturn(Paths.get("dummy/path/to/helm").toAbsolutePath()).when(mojo).getHelmExecutablePath();
@@ -61,7 +61,7 @@ public class InitMojoTest {
 	public void autoDownloadHelm(InitMojo mojo) throws Exception {
 
 		// prepare execution
-		doNothing().when(mojo).callCli(contains("helm "), anyString(), anyBoolean());
+		doNothing().when(mojo).callCli(contains("helm "), anyString());
 		// getHelmExecuteablePath is system-depending and has to be mocked for that reason
 		// as SystemUtils.IS_OS_WINDOWS will always return false on a *NIX system
 		doReturn(Paths.get("dummy/path/to/helm").toAbsolutePath()).when(mojo).getHelmExecutablePath();
@@ -82,7 +82,7 @@ public class InitMojoTest {
 
 		// prepare execution
 		ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
-		doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
+		doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString());
 		mojo.setHelmDownloadUrl(getOsSpecificDownloadURL());
 		mojo.setAddDefaultRepo(true);
 
@@ -103,7 +103,7 @@ public class InitMojoTest {
 
 		// prepare execution
 		ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
-		doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString(), anyBoolean());
+		doNothing().when(mojo).callCli(helmCommandCaptor.capture(), anyString());
 		mojo.setHelmDownloadUrl(getOsSpecificDownloadURL());
 		mojo.setRegistryConfig("/path/to/my/registry.json");
 		mojo.setRepositoryCache("/path/to/my/repository/cache");
@@ -137,7 +137,7 @@ public class InitMojoTest {
 				+ File.separator
 				// flatten directory structure using --strip to get helm executeable on basedir, see https://www.systutorials.com/docs/linux/man/1-tar/#lbAS
 				+ "helm.tar.gz --strip=1 --directory="
-				+ helmExecutableDir, "Unable to unpack helm to " + helmExecutableDir, false);
+				+ helmExecutableDir, "Unable to unpack helm to " + helmExecutableDir);
 
 		// configure mojo
 		mojo.setUseLocalHelmBinary(true);

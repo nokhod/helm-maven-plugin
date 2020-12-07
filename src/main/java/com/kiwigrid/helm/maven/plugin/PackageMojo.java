@@ -48,7 +48,7 @@ public class PackageMojo extends AbstractHelmMojo {
                 getLog().info(String.format("Setting App version to %s", getAppVersion()));
                 helmCommand = helmCommand + " --app-version " + getAppVersion();
             }
-            callCli(helmCommand, "Unable to package chart at " + inputDirectory, true);
+            callCli(helmCommand, "Unable to package chart at " + inputDirectory);
         }
     }
 

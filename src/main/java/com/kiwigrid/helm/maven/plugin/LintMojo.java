@@ -38,7 +38,7 @@ public class LintMojo extends AbstractHelmMojo {
                             + (StringUtils.isNotEmpty(getRepositoryCache()) ? " --repository-cache=" + getRepositoryCache() : "")
                             + (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : "")
                             + getValuesOptions(),
-                    "There are test failures", true);
+                    "There are test failures");
         }
     }
 }

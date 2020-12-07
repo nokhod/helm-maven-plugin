@@ -32,15 +32,12 @@ public class DryRunMojo extends AbstractHelmMojo {
         for (String inputDirectory : getChartDirectories(getChartDirectory())) {
             getLog().info("\n\nPerform dry-run for chart " + inputDirectory + "...");
 
-            callCli(getHelmExecutablePath()
-                            + " " + action
-                            + " " + inputDirectory
-                            + " --dry-run --generate-name"
-                            + (StringUtils.isNotEmpty(getRegistryConfig()) ? " --registry-config=" + getRegistryConfig() : "")
-                            + (StringUtils.isNotEmpty(getRepositoryCache()) ? " --repository-cache=" + getRepositoryCache() : "")
-                            + (StringUtils.isNotEmpty(getRepositoryConfig()) ? " --repository-config=" + getRepositoryConfig() : "")
-                            + getValuesOptions(),
-                    "There are test failures", true);
+            final String command = getCommand("install", inputDirectory);
+
+            getLog().debug("executing helm command: " + command);
+
+            callCli(new StringBuilder(command).append(" --dry-run ").toString(),
+                    "There are test failures");
         }
     }
 }
