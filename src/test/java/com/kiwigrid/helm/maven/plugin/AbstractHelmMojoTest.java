@@ -1,6 +1,5 @@
 package com.kiwigrid.helm.maven.plugin;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.junit.jupiter.api.AfterEach;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
@@ -22,7 +20,6 @@ import static org.apache.commons.io.FileUtils.deleteQuietly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -57,18 +54,6 @@ class AbstractHelmMojoTest {
 
         assertTrue(chartDirectories.containsAll(expected), "Charts dirs: " + chartDirectories + ", should contain all expected dirs: " + expected);
     }
-
-    @Test
-    void testOverrideValues() {
-        Map<String, String> override = ImmutableMap.<String, String>builder()
-                .put(
-                        "ingress.annotations.external-dns.alpha.kubernetes.io",
-                        "{'target': 'NADA'}")
-                .build();
-        final String result = AbstractHelmMojo.appendOverrideMap(override);
-        assertNotNull(result);
-    }
-
 
     @Test
     void getChartDirectoriesReturnChartDirectoriesWithPlainExclusion() throws MojoExecutionException {

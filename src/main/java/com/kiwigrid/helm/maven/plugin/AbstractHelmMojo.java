@@ -1,7 +1,9 @@
 package com.kiwigrid.helm.maven.plugin;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
 import com.kiwigrid.helm.maven.plugin.pojo.HelmRepository;
 import com.kiwigrid.helm.maven.plugin.pojo.ValueOverride;
 import lombok.Data;
@@ -23,6 +25,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.PasswordAuthentication;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -50,6 +53,11 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Data
 public abstract class AbstractHelmMojo extends AbstractMojo {
 
+    private static final String KEY_VALUE_TEMPLATE = "%s=%s";
+
+    @Parameter(property = "helm.skip", defaultValue = "false")
+    protected boolean skip;
+
     @Component(role = SecDispatcher.class, hint = "default")
     private SecDispatcher securityDispatcher;
 
@@ -64,6 +72,9 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
     @Parameter(property = "helm.outputDirectory", defaultValue = "${project.build.directory}/helm/repo")
     private String outputDirectory;
+
+    @Parameter(property = "helm.verbose", defaultValue = "false")
+    private boolean verbose;
 
     @Parameter(property = "helm.excludes")
     private String[] excludes;
@@ -104,28 +115,48 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     @Parameter(property = "helm.security", defaultValue = "~/.m2/settings-security.xml")
     private String helmSecurity;
 
-    @Parameter(property = "helm.skip", defaultValue = "false")
-    protected boolean skip;
+    @Parameter(property = "helm.releaseName")
+    private String releaseName;
+
+    @Parameter(property = "helm.namespace")
+    private String namespace;
 
     @Parameter(property = "helm.values")
     private ValueOverride values;
 
-    /**
-     * The current user system settings for use in Maven.
-     */
     @Parameter(defaultValue = "${settings}", readonly = true)
     private Settings settings;
 
-    Path getHelmExecutablePath() throws MojoExecutionException {
-        String helmExecutable = SystemUtils.IS_OS_WINDOWS ? "helm.exe" : "helm";
-        Optional<Path> path;
-        if (isUseLocalHelmBinary() && isAutoDetectLocalHelmBinary()) {
-            path = findInPath(helmExecutable);
-        } else {
-            path = Optional.of(Paths.get(helmExecutableDirectory, helmExecutable))
-                    .map(Path::toAbsolutePath)
-                    .filter(Files::exists);
+    private static boolean isJSONValid(String jsonInString) {
+        try {
+            final Gson gson = new GsonBuilder().create();
+            gson.fromJson(jsonInString, Map.class);
+            return true;
+        } catch (JsonSyntaxException ex) {
+            return false;
         }
+    }
+
+    private static String getKeyValue(String key, String value) {
+
+        return !isEmpty(key) && !isEmpty(value)
+                ? String.format(KEY_VALUE_TEMPLATE, key, value)
+                : StringUtils.EMPTY;
+    }
+
+    private static <K, V> boolean isNotEmpty(Map<K, V> map) {
+        return map != null && !map.isEmpty();
+    }
+
+    Path getHelmExecutablePath() throws MojoExecutionException {
+
+        String helmExecutable = SystemUtils.IS_OS_WINDOWS ? "helm.exe" : "helm";
+
+        Optional<Path> path = isUseLocalHelmBinary() && isAutoDetectLocalHelmBinary() ?
+                findInPath(helmExecutable) :
+                Optional.of(Paths.get(helmExecutableDirectory, helmExecutable))
+                        .map(Path::toAbsolutePath)
+                        .filter(Files::exists);
 
         return path.orElseThrow(() -> new MojoExecutionException("Helm executable is not found."));
     }
@@ -229,8 +260,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     private Predicate<String> shouldIncludeDirectory(MatchPatterns exclusionPatterns) {
         return inputDirectory -> {
 
-            final boolean isCaseSensitive = Boolean.FALSE;
-            boolean matches = exclusionPatterns.matches(inputDirectory, isCaseSensitive);
+            boolean matches = exclusionPatterns.matches(inputDirectory, Boolean.FALSE);
 
             if (matches) {
                 getLog().debug("Skip excluded directory " + inputDirectory);
@@ -286,15 +316,15 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
      * @throws IllegalArgumentException Unable to get authentication because of misconfiguration.
      * @throws MojoExecutionException   Unable to get password from settings.xml
      */
-    PasswordAuthentication getAuthentication(HelmRepository repository)
-            throws IllegalArgumentException, MojoExecutionException {
+    PasswordAuthentication getAuthentication(HelmRepository repository) throws MojoExecutionException {
+
         String id = repository.getName();
 
         if (repository.getUsername() != null) {
             if (repository.getPassword() == null) {
                 throw new IllegalArgumentException("Repo " + id + " has a username but no password defined.");
             }
-            getLog().debug("Repo " + id + " has credentials definded, skip searching in server list.");
+            getLog().debug("Repo " + id + " has credentials defined, skip searching in server list.");
             return new PasswordAuthentication(repository.getUsername(), repository.getPassword().toCharArray());
         }
 
@@ -347,7 +377,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         return setValuesOptions.toString();
     }
 
-    public static String appendOverrideMap(Map<String, String> overrides) {
+    private String appendOverrideMap(Map<String, String> overrides) {
 
         return overrides
                 .keySet()
@@ -356,24 +386,17 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
                 .collect(Collectors.joining(","));
     }
 
-    private static String convertValue(final String key, final String value) {
+    private String convertValue(final String key, final String value) {
 
-        if (JsonParser.parseString(value).isJsonObject()) {
-            final Map<String, String> map = new GsonBuilder().create().fromJson(value, Map.class);
+        getLog().info(String.format("adding key: %s and value: %s to overriding values", key, value));
+        if (isJSONValid(value)) {
+            final Gson gson = new GsonBuilder().create();
+            JsonReader reader = new JsonReader(new StringReader(value));
+            reader.setLenient(true);
+            Map<String, String> map = gson.fromJson(reader, Map.class);
             return map.keySet().stream().map(el -> getKeyValue(key.concat("/").concat(el), map.get(el))).collect(Collectors.joining(","));
         } else {
             return getKeyValue(key, value);
         }
-    }
-
-    private static String getKeyValue(String key, String value) {
-
-        return !isEmpty(key) && !isEmpty(value)
-                ? key.concat("=").concat(value)
-                : StringUtils.EMPTY;
-    }
-
-    private static <K, V> boolean isNotEmpty(Map<K, V> map) {
-        return map != null && !map.isEmpty();
     }
 }

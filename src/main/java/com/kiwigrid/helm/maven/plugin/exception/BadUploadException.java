@@ -8,10 +8,10 @@ package com.kiwigrid.helm.maven.plugin.exception;
  */
 public class BadUploadException extends Exception {
 
-	public BadUploadException() {
-	}
+    public BadUploadException() {
+    }
 
-	public BadUploadException(String message) {
-		super(message);
-	}
+    public BadUploadException(String message) {
+        super(message);
+    }
 }
