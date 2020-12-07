@@ -30,7 +30,7 @@ public class InstallMojo extends AbstractHelmMojo {
             final String command = new StringBuilder()
                     .append(getHelmExecutablePath())
                     .append(" install ")
-                    .append(isNotEmpty(getReleaseName()) ? getReleaseName() : " --generate-name ")
+                    .append(isNotEmpty(getReleaseName()) ? format(" %s ",getReleaseName()) : " --generate-name ")
                     .append(inputDirectory)
                     .append(isNotEmpty(getNamespace()) ? format(" -n %s ", getNamespace().toLowerCase(Locale.ROOT)) : EMPTY)
                     .append(isVerbose() ? " --debug " : EMPTY)
