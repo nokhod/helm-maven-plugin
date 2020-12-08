@@ -32,7 +32,7 @@ public class DryRunMojo extends AbstractHelmMojo {
         for (String inputDirectory : getChartDirectories(getChartDirectory())) {
             getLog().info("\n\nPerform dry-run for chart " + inputDirectory + "...");
 
-            final String command = getCommand("install", inputDirectory);
+            final String command = getCommand("upgrade --install", inputDirectory);
 
             getLog().debug("executing helm command: " + command);
 

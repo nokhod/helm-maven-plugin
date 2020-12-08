@@ -6,12 +6,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
-import java.util.Locale;
-
-import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-
 /**
  * Mojo for install the chart.
  *
@@ -19,15 +13,15 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
  * @since 14.11.17
  */
 @Data
-@Mojo(name = "install", defaultPhase = LifecyclePhase.DEPLOY)
-public class InstallMojo extends AbstractHelmMojo {
+@Mojo(name = "template", defaultPhase = LifecyclePhase.VERIFY)
+public class TemplateMojo extends AbstractHelmMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
 
         for (String inputDirectory : getChartDirectories(getChartDirectory())) {
-            getLog().info("\n\ninstalling the chart " + inputDirectory + "...");
+            getLog().info("\n\ntemplating the chart " + inputDirectory + "...");
 
-            final String command = getCommand("upgrade --install", inputDirectory);
+            final String command = getCommand("template", inputDirectory);
 
             getLog().debug("executing helm command: " + command);
 

@@ -2,6 +2,7 @@ package com.kiwigrid.helm.maven.plugin;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -10,9 +11,13 @@ import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
@@ -53,6 +58,23 @@ class AbstractHelmMojoTest {
         List<String> expected = asList(chartDir, excludeDir1, excludeDir2);
 
         assertTrue(chartDirectories.containsAll(expected), "Charts dirs: " + chartDirectories + ", should contain all expected dirs: " + expected);
+    }
+
+    @Test
+    void testAppendOverrideMap() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        final Method appendOverrideMap = AbstractHelmMojo.class.getDeclaredMethod("appendOverrideMap", Map.class);
+        appendOverrideMap.setAccessible(true);
+        Map<String, String> arg = new HashMap<String, String>() {{
+            put("ingress.annotations", "{\"external-dns.alpha.kubernetes.io/target\": \"${env.NGINX_INGRESS_DOMAIN}\"}");
+        }};
+        final Object invoke = appendOverrideMap.invoke(new AbstractHelmMojo() {
+            @Override
+            public void execute() throws MojoExecutionException, MojoFailureException {
+
+            }
+        }, arg);
+        System.out.println(invoke);
     }
 
     @Test

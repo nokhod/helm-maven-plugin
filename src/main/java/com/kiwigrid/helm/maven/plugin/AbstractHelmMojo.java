@@ -147,6 +147,23 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
                 : StringUtils.EMPTY;
     }
 
+    private static String getKeyValue(String key, String mapKey, String mapValue) {
+
+        if (isEmpty(key) && isEmpty(mapValue)) {
+            return StringUtils.EMPTY;
+        }
+        if (key.equalsIgnoreCase("ingress.annotations")) {
+            key = new StringBuilder("Master.Ingress.Annotations.")
+                    .append("\"")
+                    .append(mapKey.replaceAll("\\.", "\\\\."))
+                    .append("\"")
+                    .toString();
+        } else {
+            key = new StringBuilder(key).append("/").append(mapKey).toString();
+        }
+        return String.format(KEY_VALUE_TEMPLATE, key, mapValue);
+    }
+
     private static <K, V> boolean isNotEmpty(Map<K, V> map) {
         return map != null && !map.isEmpty();
     }
@@ -195,7 +212,6 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
      *
      * @param command      the command to be executed
      * @param errorMessage a readable error message that will be shown in case of exceptions
-     * @param verbose      logs STDOUT to Maven info log
      * @throws MojoExecutionException on error
      */
     void callCli(String command, String errorMessage) throws MojoExecutionException {
@@ -401,7 +417,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
             JsonReader reader = new JsonReader(new StringReader(value));
             reader.setLenient(true);
             Map<String, String> map = gson.fromJson(reader, Map.class);
-            return map.keySet().stream().map(el -> getKeyValue(key.concat("/").concat(el), map.get(el))).collect(Collectors.joining(","));
+            return map.keySet().stream().map(mapKey -> getKeyValue(key, mapKey, map.get(mapKey))).collect(Collectors.joining(","));
         } else {
             return getKeyValue(key, value);
         }
