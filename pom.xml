@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.kiwigrid</groupId>
+    <groupId>com.kbakhtiari</groupId>
     <artifactId>helm-maven-plugin</artifactId>
-    <version>5.7</version>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -12,10 +12,10 @@
         A plugin for executing HELM (https://docs.helm.sh).
         HELM itself will be downloaded during build or local binary can be provided.
     </description>
-    <url>https://github.com/kiwigrid/helm-maven-plugin</url>
+    <url>https://gitlab.com/ikbengeweldig/helm-maven-plugin</url>
     <organization>
-        <name>Kiwigrid GmbH</name>
-        <url>https://www.kiwigrid.com</url>
+        <name>Khodabakhsh Bakhtiari</name>
+        <url>https://www.kbakhtiari.com</url>
     </organization>
     <licenses>
         <license>
@@ -26,12 +26,8 @@
 
     <developers>
         <developer>
-            <name>Fabian Schlegel</name>
-            <email>fabian.schlegel@kiwigrid.com</email>
-        </developer>
-        <developer>
-            <name>Axel Köhler</name>
-            <email>axel.koehler@kiwigrid.com</email>
+            <name>Khodabakhsh Bakhtiari</name>
+            <email>khodabakhsh.ba@gmail.com</email>
         </developer>
     </developers>
 
@@ -40,24 +36,23 @@
     </prerequisites>
 
     <scm>
-        <connection>scm:git:git://github.com/kiwigrid/helm-maven-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:kiwigrid/helm-maven-plugin.git</developerConnection>
-        <url>https://github.com/kiwigrid/helm-maven-plugin/tree/master</url>
+        <connection>scm:git:git://gitlab.com:ikbengeweldig/helm-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@gitlab.com:ikbengeweldig/helm-maven-plugin.git</developerConnection>
+        <url>https://gitlab.com/ikbengeweldig/helm-maven-plugin/-/tree/master</url>
         <tag>HEAD</tag>
     </scm>
     <distributionManagement>
         <repository>
-            <id>gitlab-maven-22866809</id>
-            <url>https://gitlab.com/api/v4/projects/${gitlab-project-id}/packages/maven</url>
+            <id>gitlab-maven</id>
+            <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
         </repository>
         <snapshotRepository>
-            <id>gitlab-maven-22866809</id>
-            <url>https://gitlab.com/api/v4/projects/${gitlab-project-id}/packages/maven</url>
+            <id>gitlab-maven</id>
+            <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
         </snapshotRepository>
     </distributionManagement>
 
     <properties>
-        <gitlab-project-id>22866809</gitlab-project-id>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -143,7 +138,7 @@
     <repositories>
         <repository>
             <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/${gitlab-project-id}/packages/maven</url>
+            <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
         </repository>
     </repositories>
 
