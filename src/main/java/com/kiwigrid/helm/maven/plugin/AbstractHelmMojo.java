@@ -47,12 +47,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-/**
- * Base class for mojos
- *
- * @author Fabian Schlegel
- * @since 06.11.17
- */
 @Data
 public abstract class AbstractHelmMojo extends AbstractMojo {
 
@@ -153,10 +147,8 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
             return StringUtils.EMPTY;
         }
         if (key.equalsIgnoreCase("ingress.annotations")) {
-            key = new StringBuilder("Master.Ingress.Annotations.")
-                    .append("\"")
+            key = new StringBuilder("ingress.annotations.")
                     .append(mapKey.replaceAll("\\.", "\\\\."))
-                    .append("\"")
                     .toString();
         } else {
             key = new StringBuilder(key).append("/").append(mapKey).toString();
