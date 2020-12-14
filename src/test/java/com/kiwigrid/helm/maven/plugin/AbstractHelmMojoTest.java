@@ -1,5 +1,24 @@
 package com.kiwigrid.helm.maven.plugin;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
@@ -9,20 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
-import org.apache.commons.lang3.SystemUtils;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 class AbstractHelmMojoTest {
 
@@ -39,7 +44,7 @@ class AbstractHelmMojoTest {
 
         chartDir = getBaseChartsDirectory().toString();
         excludeDir1 = chartDir + File.separator + "exclude1";
-        excludeDir2= chartDir + File.separator + "exclude2";
+        excludeDir2 = chartDir + File.separator + "exclude2";
 
         subjectSpy = Mockito.spy(new NoopHelmMojo());
         testPath = Files.createTempDirectory("test").toAbsolutePath();
@@ -55,6 +60,22 @@ class AbstractHelmMojoTest {
         assertTrue(chartDirectories.containsAll(expected), "Charts dirs: " + chartDirectories + ", should contain all expected dirs: " + expected);
     }
 
+    @Test
+    void testAppendOverrideMap() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+
+        final Method appendOverrideMap = AbstractHelmMojo.class.getDeclaredMethod("appendOverrideMap", Map.class);
+        appendOverrideMap.setAccessible(true);
+        Map<String, String> arg = new HashMap<String, String>() {{
+            put("ingress.annotations", "{\"external-dns.alpha.kubernetes.io/target\": \"${env.NGINX_INGRESS_DOMAIN}\"}");
+        }};
+        final Object invoke = appendOverrideMap.invoke(new AbstractHelmMojo() {
+            @Override
+            public void execute() throws MojoExecutionException, MojoFailureException {
+
+            }
+        }, arg);
+        System.out.println(invoke);
+    }
 
     @Test
     void getChartDirectoriesReturnChartDirectoriesWithPlainExclusion() throws MojoExecutionException {
@@ -89,20 +110,20 @@ class AbstractHelmMojoTest {
 
             subjectSpy.setUseLocalHelmBinary(true);
             subjectSpy.setAutoDetectLocalHelmBinary(true);
-            doReturn(new String[]{ testPath.toAbsolutePath().toString() }).when(subjectSpy).getPathsFromEnvironmentVariables();
+            doReturn(new String[]{testPath.toAbsolutePath().toString()}).when(subjectSpy).getPathsFromEnvironmentVariables();
         }
 
         @Test
         void helmIsAutoDetectedFromPATH() throws MojoExecutionException, IOException {
 
             final Path expectedPath = addHelmToTestPath();
-            assertEquals(expectedPath, subjectSpy.getHelmExecuteablePath());
+            assertEquals(expectedPath, subjectSpy.getHelmExecutablePath());
         }
 
         @Test
         void executionFailsWhenHelmIsNotFoundInPATH() {
 
-            final MojoExecutionException exception = assertThrows(MojoExecutionException.class, subjectSpy::getHelmExecuteablePath);
+            final MojoExecutionException exception = assertThrows(MojoExecutionException.class, subjectSpy::getHelmExecutablePath);
             assertTrue(exception.getMessage().contains("not found"));
         }
 
@@ -112,8 +133,8 @@ class AbstractHelmMojoTest {
             final String explicitExecutableDirectory = "/fish/in/da/sea";
             subjectSpy.setHelmExecutableDirectory(explicitExecutableDirectory);
             final Path expectedPath = addHelmToTestPath();
-            assertEquals(expectedPath, subjectSpy.getHelmExecuteablePath());
-            assertNotEquals(explicitExecutableDirectory, subjectSpy.getHelmExecuteablePath());
+            assertEquals(expectedPath, subjectSpy.getHelmExecutablePath());
+            assertNotEquals(explicitExecutableDirectory, subjectSpy.getHelmExecutablePath());
         }
     }
 
@@ -131,25 +152,29 @@ class AbstractHelmMojoTest {
         void helmIsInTheExplicitlyConfiguredDirectory() throws MojoExecutionException, IOException {
 
             final Path expectedPath = addHelmToTestPath();
-            assertEquals(expectedPath, subjectSpy.getHelmExecuteablePath());
+            assertEquals(expectedPath, subjectSpy.getHelmExecutablePath());
         }
 
         @Test
         void executionFailsWhenHelmIsNotFoundInConfiguredDirectory() {
 
-            final MojoExecutionException exception = assertThrows(MojoExecutionException.class, subjectSpy::getHelmExecuteablePath);
+            final MojoExecutionException exception = assertThrows(MojoExecutionException.class, subjectSpy::getHelmExecutablePath);
             assertTrue(exception.getMessage().contains("not found"));
         }
     }
 
-    private Path addHelmToTestPath() throws IOException { return write(testHelmExecutablePath, new byte[]{}); }
+    private Path addHelmToTestPath() throws IOException {
+        return write(testHelmExecutablePath, new byte[]{});
+    }
 
     private Path getBaseChartsDirectory() {
-    	return new File(getClass().getResource("Chart.yaml").getFile()).toPath().getParent();
+        return new File(getClass().getResource("Chart.yaml").getFile()).toPath().getParent();
     }
 
     @AfterEach
-    void tearDown() { deleteQuietly(testPath.toFile()); }
+    void tearDown() {
+        deleteQuietly(testPath.toFile());
+    }
 
     private static class NoopHelmMojo extends AbstractHelmMojo {
 

@@ -1,20 +1,23 @@
 package com.kiwigrid.helm.maven.plugin;
 
-import java.util.Map;
-
+import com.kiwigrid.helm.maven.plugin.pojo.ValueOverride;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import com.kiwigrid.helm.maven.plugin.pojo.ValueOverride;
-
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Map;
 
 @Getter
 @Setter
+@Deprecated
 public abstract class AbstractHelmWithValueOverrideMojo extends AbstractHelmMojo {
     @Parameter(property = "helm.values")
     private ValueOverride values;
+
+    private static <K, V> boolean isNotEmpty(Map<K, V> map) {
+        return map != null && !map.isEmpty();
+    }
 
     protected String getValuesOptions() {
         StringBuilder setValuesOptions = new StringBuilder();
@@ -48,10 +51,6 @@ public abstract class AbstractHelmWithValueOverrideMojo extends AbstractHelmMojo
             }
             setValues.append(valueEntry.getKey()).append('=').append(valueEntry.getValue());
         }
-    }
-
-    private static <K, V> boolean isNotEmpty(Map<K, V> map) {
-        return map != null && !map.isEmpty();
     }
 
 

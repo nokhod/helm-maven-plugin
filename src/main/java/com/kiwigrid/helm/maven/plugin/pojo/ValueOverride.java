@@ -1,12 +1,11 @@
 package com.kiwigrid.helm.maven.plugin.pojo;
 
-import java.util.Map;
-
-import org.apache.maven.plugins.annotations.Parameter;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.maven.plugins.annotations.Parameter;
+
+import java.util.Map;
 
 /**
  * POJO for extra value override configuration (typically passed with --set or -f options)
