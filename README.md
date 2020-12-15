@@ -2,11 +2,12 @@
 
 This is a Maven plugin for testing, packaging and uploading HELM charts.
 
-"HELM is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources." 
+"HELM is a tool for managing Kubernetes charts. Charts are packages of pre-configured Kubernetes resources."
 
 Visit https://docs.helm.sh for detailed information.
 
-Currently the upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum) and [Artifactory](https://jfrog.com/artifactory/) is supported.
+Currently the upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum)
+and [Artifactory](https://jfrog.com/artifactory/) is supported.
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kiwigrid/helm-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.kiwigrid/helm-maven-plugin)
 
@@ -14,11 +15,11 @@ Currently the upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmu
 
 ## Helm v3
 
-From version **5.0** Helm v3 is required.
-There is no longer support for Helm v2.
-For convenience reasons the stable repo is added by default.
+From version **5.0** Helm v3 is required. There is no longer support for Helm v2. For convenience reasons the stable
+repo is added by default.
 
-Helm v2 users can still use plugin version [4.13](https://search.maven.org/artifact/com.kiwigrid/helm-maven-plugin/4.13/maven-plugin).
+Helm v2 users can still use plugin
+version [4.13](https://search.maven.org/artifact/com.kiwigrid/helm-maven-plugin/4.13/maven-plugin).
 
 # Why?
 
@@ -26,10 +27,11 @@ Currently (October 2017) there is no simple Maven plugin to package existing HEL
 
 # How?
 
-By default, the plugin automatically downloads Helm at the specified version. You can also manually specify the download URL.
-Next to that it is possible to specify a local Helm binary. In all cases Helm will be executed in the background.
+By default, the plugin automatically downloads Helm at the specified version. You can also manually specify the download
+URL. Next to that it is possible to specify a local Helm binary. In all cases Helm will be executed in the background.
 
 Add following dependency to your pom.xml:
+
 ```xml
 <dependency>
   <groupId>com.kiwigrid</groupId>
@@ -62,6 +64,7 @@ The default setting is to construct the Helm download URL based upon the detecte
 ```
 
 ### Usage with Downloaded Binary
+
 ```xml
 <build>
   <plugins>
@@ -132,6 +135,7 @@ and disables the auto-detection feature:
 ```
 
 ### Configure Plugin to Use Credentials from settings.xml for Upload
+
 ```xml
 <build>
   <plugins>
@@ -163,63 +167,65 @@ and disables the auto-detection feature:
 ```
 
 ### More Complex Example
+
 ```xml
+
 <build>
-  <plugins>
-  ...
-    <plugin>
-      <groupId>com.kiwigrid</groupId>
-      <artifactId>helm-maven-plugin</artifactId>
-      <version>5.6</version>
-      <configuration>
-        <chartDirectory>${project.basedir}</chartDirectory>
-        <chartVersion>${project.version}</chartVersion>
-        <uploadRepoStable>
-            <name>stable-repo</name>
-            <url>https://repo.example.com/artifactory/helm-stable</url>
-            <!-- Artifacotry requires basic authentication --> 
-            <!-- which is supported from HELM version >= 2.9 -->
-            <type>ARTIFACTORY</type>
-            <username>foo</username>
-            <password>bar</password>
-        </uploadRepoStable>
-        <uploadRepoSnapshot>
-            <name>snapshot-repo</name>
-            <url>https://my.chart.museum/api/charts</url>
-            <type>CHARTMUSEUM</type>
-        </uploadRepoSnapshot>
-        <helmDownloadUrl>https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz</helmDownloadUrl>
-        <helmHomeDirectory>${project.basedir}/target/helm/home</helmHomeDirectory>
-        <registryConfig>~/.config/helm/registry.json</registryConfig>
-        <repositoryCache>~/.cache/helm/repository</repositoryCache>
-        <repositoryConfig>~/.config/helm/repositories.yaml</repositoryConfig>
-        <!-- Lint with strict mode -->
-        <lintStrict>true</lintStrict>
-        <!-- Disable adding of default repo stable https://charts.helm.sh/stable -->
-        <addDefaultRepo>false</addDefaultRepo>
-        <!-- Exclude a directory to avoid processing -->
-        <excludes>
-          <exclude>${project.basedir}/excluded</exclude>
-          <exclude>${project.basedir}/**/excluded*</exclude>
-        </excludes>
-        <!-- Add an additional repo -->
-        <helmExtraRepos>
-          <helmRepo>
-            <name>kiwigrid</name>
-            <url>https://kiwigrid.github.io</url>
-          </helmRepo>
-        </helmExtraRepos>
-        <!-- extra value settings for the lint command -->
-        <values>
-          <overrides>
-            <component1.install.path>/opt/component1</component1.install.path>
-          </overrides>
-          <yamlFile>${project.basedir}/src/test/resources/myOverrides.yaml</yamlFile>
-        </values>
-      </configuration>
-    </plugin>
-  ...
-  </plugins>
+    <plugins>
+        ...
+        <plugin>
+            <groupId>com.kiwigrid</groupId>
+            <artifactId>helm-maven-plugin</artifactId>
+            <version>5.6</version>
+            <configuration>
+                <chartDirectory>${project.basedir}</chartDirectory>
+                <chartVersion>${project.version}</chartVersion>
+                <uploadRepoStable>
+                    <name>stable-repo</name>
+                    <url>https://repo.example.com/artifactory/helm-stable</url>
+                    <!-- Artifacotry requires basic authentication -->
+                    <!-- which is supported from HELM version >= 2.9 -->
+                    <type>ARTIFACTORY</type>
+                    <username>foo</username>
+                    <password>bar</password>
+                </uploadRepoStable>
+                <uploadRepoSnapshot>
+                    <name>snapshot-repo</name>
+                    <url>https://my.chart.museum/api/charts</url>
+                    <type>CHARTMUSEUM</type>
+                </uploadRepoSnapshot>
+                <helmDownloadUrl>https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz</helmDownloadUrl>
+                <helmHomeDirectory>${project.basedir}/target/helm/home</helmHomeDirectory>
+                <registryConfig>~/.config/helm/registry.json</registryConfig>
+                <repositoryCache>~/.cache/helm/repository</repositoryCache>
+                <repositoryConfig>~/.config/helm/repositories.yaml</repositoryConfig>
+                <!-- Lint with strict mode -->
+                <lintStrict>true</lintStrict>
+                <!-- Disable adding of default repo stable https://charts.helm.sh/stable -->
+                <addDefaultRepo>false</addDefaultRepo>
+                <!-- Exclude a directory to avoid processing -->
+                <excludes>
+                    <exclude>${project.basedir}/excluded</exclude>
+                    <exclude>${project.basedir}/**/excluded*</exclude>
+                </excludes>
+                <!-- Add an additional repo -->
+                <helmExtraRepos>
+                    <helmRepo>
+                        <name>kiwigrid</name>
+                        <url>https://kiwigrid.github.io</url>
+                    </helmRepo>
+                </helmExtraRepos>
+                <!-- extra value settings for the lint command -->
+                <values>
+                    <overrides>
+                        <component1.install.path>/opt/component1</component1.install.path>
+                    </overrides>
+                    <yamlFile>${project.basedir}/src/test/resources/myOverrides.yaml</yamlFile>
+                </values>
+            </configuration>
+        </plugin>
+        ...
+    </plugins>
 </build>
 ```
 
@@ -229,7 +235,8 @@ and disables the auto-detection feature:
 - Test Helm charts (Helm lint)
 - Recursive chart detection (subcharts)
 - Helm does not need to be installed
-- Upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum) or [Artifactory](https://jfrog.com/artifactory/)
+- Upload to [ChartMuseum](https://github.com/kubernetes-helm/chartmuseum)
+  or [Artifactory](https://jfrog.com/artifactory/)
 - Repository names are interpreted as server IDs to retrieve basic authentication from server list in settings.xml.
 
 # Usage
@@ -237,7 +244,7 @@ and disables the auto-detection feature:
 ## Goals
 
 - `helm:init` initializes Helm by downloading a specific version
-- `helm:dependency-build` resolves the chart dependencies  
+- `helm:dependency-build` resolves the chart dependencies
 - `helm:package` packages the given charts (chart.tar.gz)
 - `helm:lint` tests the given charts
 - `helm:dry-run` simulates an install
@@ -277,7 +284,8 @@ Parameter | Type | User Property | Required | Description
 
 ## Packaging with the Helm Lifecycle
 
-To keep your pom files small you can use 'helm' packaging. This binds `helm:init` to the initialize phase, `helm:lint` to the test phase, `helm:package` to the package phase and `helm:upload` to the deploy phase.
+To keep your pom files small you can use 'helm' packaging. This binds `helm:init` to the initialize phase, `helm:lint`
+to the test phase, `helm:package` to the package phase and `helm:upload` to the deploy phase.
 
 ```xml
 <pom>
