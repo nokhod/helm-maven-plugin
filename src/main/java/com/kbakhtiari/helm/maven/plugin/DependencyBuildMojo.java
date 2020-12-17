@@ -1,9 +1,12 @@
 package com.kbakhtiari.helm.maven.plugin;
 
+import com.kbakhtiari.helm.maven.plugin.utils.Constants;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 
 @Mojo(name = "dependency-build", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class DependencyBuildMojo extends AbstractHelmMojo {

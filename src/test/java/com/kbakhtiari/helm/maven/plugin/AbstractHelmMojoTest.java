@@ -1,6 +1,6 @@
 package com.kbakhtiari.helm.maven.plugin;
 
-import com.kbakhtiari.helm.maven.plugin.AbstractHelmMojo;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -16,7 +16,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,25 +66,20 @@ class AbstractHelmMojoTest {
   void testAppendOverrideMap()
       throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
-    final Method appendOverrideMap =
-        AbstractHelmMojo.class.getDeclaredMethod("appendOverrideMap", Map.class);
-    appendOverrideMap.setAccessible(true);
-    Map<String, String> arg =
-        new HashMap<String, String>() {
-          {
-            put(
-                "ingress.annotations",
-                "{\"external-dns.alpha.kubernetes.io/target\": \"${env.NGINX_INGRESS_DOMAIN}\"}");
-          }
-        };
-    final Object invoke =
-        appendOverrideMap.invoke(
-            new AbstractHelmMojo() {
-              @Override
-              public void execute() throws MojoExecutionException, MojoFailureException {}
-            },
-            arg);
-    System.out.println(invoke);
+    final Method appendOverrides =
+        AbstractHelmMojo.class.getDeclaredMethod("appendOverrides", Map.class);
+    appendOverrides.setAccessible(true);
+    final String invoke =
+        (String)
+            appendOverrides.invoke(
+                new AbstractHelmMojo() {
+                  @java.lang.Override
+                  public void execute() throws MojoExecutionException, MojoFailureException {}
+                },
+                ImmutableMap.builder()
+                    .put("ingress.annotations.external-dns.alpha.kubernetes.io/target", "nginx")
+                    .build());
+    assertEquals("ingress.annotations.external-dns.alpha.kubernetes.io/target=nginx", invoke);
   }
 
   @Test
@@ -152,7 +146,7 @@ class AbstractHelmMojoTest {
 
   private static class NoopHelmMojo extends AbstractHelmMojo {
 
-    @Override
+    @java.lang.Override
     public void execute() {
       /* Noop. */
     }

@@ -134,6 +134,15 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
     </dependencies>
 
     <repositories>
@@ -171,22 +180,27 @@
                                 <chartDirectory>${env.CI_CHART_DIRECTORY}</chartDirectory>
                                 <values>
                                     <overrides>
-                                        <namespace>${env.CI_SPRING_PROFILE}</namespace>
-                                        <image.tag>${env.CI_SPRING_PROFILE}-${env.CI_COMMIT_SHORT_SHA}</image.tag>
-                                        <image.repository>${env.CI_REGISTRY_IMAGE}</image.repository>
-                                        <ingress.enabled>true</ingress.enabled>
-                                        <!-- DNS Configuration -->
-                                        <ingress.annotations>
-                                            {
-                                            "external-dns.alpha.kubernetes.io/target": "${env.NGINX_INGRESS_DOMAIN}",
-                                            "nginx.ingress.kubernetes.io/rewrite-target": "/$2"
+                                        {
+                                            "namespace":"${env.CI_SPRING_PROFILE}",
+                                            "image":{
+                                                "tag":"${env.CI_SPRING_PROFILE}-${env.CI_COMMIT_SHORT_SHA}",
+                                                "repository":"${env.CI_REGISTRY_IMAGE}"
+                                            },
+                                            "ingress":{
+                                                "enabled":"true",
+                                                "annotations":{
+                                                    "^external-dns.alpha.kubernetes.io/target^":"${env.NGINX_INGRESS_DOMAIN}",
+                                                    "^nginx.ingress.kubernetes.io/rewrite-target^":"/$2"
+                                                }
+                                            },
+                                            "imageCredentials":{
+                                                "name":"${project.artifactId}-container-registry",
+                                                "registry":"${env.CI_REGISTRY}",
+                                                "username":"${env.CI_DEPLOY_USER}",
+                                                "password":"${env.CI_DEPLOY_PASSWORD}",
+                                                "email":"khodabakhsh.bakhtiari@nl.abnamro.com"
                                             }
-                                        </ingress.annotations>
-                                        <imageCredentials.name>${project.artifactId}-container-registry</imageCredentials.name>
-                                        <imageCredentials.registry>${env.CI_REGISTRY}</imageCredentials.registry>
-                                        <imageCredentials.username>${env.CI_DEPLOY_USER}</imageCredentials.username>
-                                        <imageCredentials.password>${env.CI_DEPLOY_PASSWORD}</imageCredentials.password>
-                                        <imageCredentials.email>khodabakhsh.bakhtiari@nl.abnamro.com</imageCredentials.email>
+                                        }
                                     </overrides>
                                 </values>
                             </configuration>

@@ -6,12 +6,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
-/**
- * Mojo for install the chart.
- *
- * @author Khodabakhsh Bakhtiari
- * @since 14.11.17
- */
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
+
 @Data
 @Mojo(name = "template", defaultPhase = LifecyclePhase.VERIFY)
 public class TemplateMojo extends AbstractHelmMojo {

@@ -6,6 +6,8 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
+
 @Data
 @Mojo(name = "upgrade-with-install", defaultPhase = LifecyclePhase.DEPLOY)
 public class UpgradeWithInstallMojo extends AbstractHelmMojo {

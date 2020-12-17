@@ -5,6 +5,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 @Mojo(name = "lint", defaultPhase = LifecyclePhase.TEST)

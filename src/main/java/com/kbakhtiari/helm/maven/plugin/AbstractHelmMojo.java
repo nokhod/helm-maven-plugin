@@ -3,12 +3,12 @@ package com.kbakhtiari.helm.maven.plugin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.stream.JsonReader;
 import com.kbakhtiari.helm.maven.plugin.pojo.HelmRepository;
 import com.kbakhtiari.helm.maven.plugin.pojo.ValueOverride;
+import com.kbakhtiari.helm.maven.plugin.utils.PackageUtils;
 import lombok.Data;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -24,7 +24,6 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.PasswordAuthentication;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
@@ -43,26 +42,17 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.kbakhtiari.helm.maven.plugin.utils.PackageUtils.toMap;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
 @Data
 public abstract class AbstractHelmMojo extends AbstractMojo {
 
   private static final String KEY_VALUE_TEMPLATE = "%s=%s";
-
-  protected static final String LOG_TEMPLATE =
-      new StringBuilder()
-          .append(System.lineSeparator())
-          .append(System.lineSeparator())
-          .append("\t\t")
-          .append("%s")
-          .append(System.lineSeparator())
-          .append(System.lineSeparator())
-          .toString();
 
   @Parameter(property = "helm.skip", defaultValue = "false")
   protected boolean skip;
@@ -152,23 +142,10 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
   private static String getKeyValue(String key, String value) {
 
-    return !isEmpty(key) && !isEmpty(value) ? format(KEY_VALUE_TEMPLATE, key, value) : EMPTY;
-  }
-
-  private static String getKeyValue(String key, String mapKey, String mapValue) {
-
-    if (isEmpty(key) && isEmpty(mapValue)) {
+    if (isEmpty(key) && isEmpty(value)) {
       return EMPTY;
     }
-    if (key.equalsIgnoreCase("ingress.annotations")) {
-      key =
-          new StringBuilder("ingress.annotations.")
-              .append(mapKey.replaceAll("\\.", "\\\\."))
-              .toString();
-    } else {
-      key = new StringBuilder(key).append("/").append(mapKey).toString();
-    }
-    return format(KEY_VALUE_TEMPLATE, key, mapValue);
+    return format(KEY_VALUE_TEMPLATE, key, value);
   }
 
   Path getHelmExecutablePath() throws MojoExecutionException {
@@ -221,7 +198,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
                   } else {
                     getLog().debug(inputLine);
                   }
-                  if (isNotEmpty(errorLine)) {
+                  if (StringUtils.isNotEmpty(errorLine)) {
                     getLog().error(errorLine);
                   }
                 } catch (IOException e) {
@@ -300,7 +277,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     if (chartVersion != null
         && chartVersion.endsWith("-SNAPSHOT")
         && uploadRepoSnapshot != null
-        && isNotEmpty(uploadRepoSnapshot.getUrl())) {
+        && StringUtils.isNotEmpty(uploadRepoSnapshot.getUrl())) {
       uploadUrl = uploadRepoSnapshot.getUrl();
     }
 
@@ -312,7 +289,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     if (chartVersion != null
         && chartVersion.endsWith("-SNAPSHOT")
         && uploadRepoSnapshot != null
-        && isNotEmpty(uploadRepoSnapshot.getUrl())) {
+        && StringUtils.isNotEmpty(uploadRepoSnapshot.getUrl())) {
       return uploadRepoSnapshot;
     }
     return uploadRepoStable;
@@ -323,7 +300,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
     String id = repository.getName();
 
-    if (isNotEmpty(repository.getUsername())) {
+    if (StringUtils.isNotEmpty(repository.getUsername())) {
       if (isEmpty(repository.getPassword())) {
         throw new IllegalArgumentException(
             "Repo " + id + " has a username but no password defined.");
@@ -367,18 +344,18 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
     StringBuilder setValuesOptions = new StringBuilder();
     if (values != null) {
-      if (MapUtils.isNotEmpty(values.getOverrides())) {
-        setValuesOptions.append(" --set ").append(appendOverrideMap(values.getOverrides()));
+      if (isNotEmpty(values.getOverrides())) {
+        setValuesOptions.append(" --set ").append(appendOverrides(toMap(values.getOverrides())));
       }
-      if (MapUtils.isNotEmpty(values.getStringOverrides())) {
+      if (isNotEmpty(values.getStringOverrides())) {
         setValuesOptions
             .append(" --set-string ")
-            .append(appendOverrideMap(values.getStringOverrides()));
+            .append(appendOverrides(toMap(values.getStringOverrides())));
       }
-      if (MapUtils.isNotEmpty(values.getFileOverrides())) {
+      if (isNotEmpty(values.getFileOverrides())) {
         setValuesOptions
             .append(" --set-file ")
-            .append(appendOverrideMap(values.getFileOverrides()));
+            .append(appendOverrides(toMap(values.getFileOverrides())));
       }
       if (isNotBlank(values.getYamlFile())) {
         setValuesOptions.append(" --values ").append(values.getYamlFile());
@@ -387,27 +364,12 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     return setValuesOptions.toString();
   }
 
-  private String appendOverrideMap(Map<String, String> overrides) {
+  private String appendOverrides(Map<String, ?> overrides) {
 
-    return overrides.keySet().stream()
-        .map(key -> convertValue(key, overrides.get(key)))
+    final Map<String, ?> flattenOverrides = PackageUtils.flattenOverrides(overrides);
+    return flattenOverrides.keySet().stream()
+        .map(key -> getKeyValue(key, (String) flattenOverrides.get(key)))
         .collect(Collectors.joining(","));
-  }
-
-  private String convertValue(final String key, final String value) {
-
-    getLog().info(format("adding key: %s and value: %s to overriding values", key, value));
-    if (isJSONValid(value)) {
-      final Gson gson = new GsonBuilder().create();
-      JsonReader reader = new JsonReader(new StringReader(value));
-      reader.setLenient(true);
-      Map<String, String> map = gson.fromJson(reader, Map.class);
-      return map.keySet().stream()
-          .map(mapKey -> getKeyValue(key, mapKey, map.get(mapKey)))
-          .collect(Collectors.joining(","));
-    } else {
-      return getKeyValue(key, value);
-    }
   }
 
   protected final String getCommand(String action, String inputDirectory)
@@ -425,28 +387,31 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         .toString();
   }
 
+  @Deprecated
   protected final String getCommand(String action, String args, String inputDirectory)
       throws MojoExecutionException {
 
     return new StringBuilder(getHelmCommand(action, args))
         .append(
-            isNotEmpty(getReleaseName()) ? format(" %s ", getReleaseName()) : " --generate-name ")
+            StringUtils.isNotEmpty(getReleaseName())
+                ? format(" %s ", getReleaseName())
+                : " --generate-name ")
         .append(inputDirectory)
         .append(
-            isNotEmpty(getNamespace())
+            StringUtils.isNotEmpty(getNamespace())
                 ? format(" -n %s ", getNamespace().toLowerCase(Locale.ROOT))
                 : EMPTY)
         .append(isVerbose() ? " --debug " : EMPTY)
         .append(
-            isNotEmpty(getRegistryConfig())
+            StringUtils.isNotEmpty(getRegistryConfig())
                 ? format(" --registry-config=%s ", getRegistryConfig())
                 : EMPTY)
         .append(
-            isNotEmpty(getRepositoryCache())
+            StringUtils.isNotEmpty(getRepositoryCache())
                 ? format(" --repository-cache=%s ", getRepositoryCache())
                 : EMPTY)
         .append(
-            isNotEmpty(getRepositoryConfig())
+            StringUtils.isNotEmpty(getRepositoryConfig())
                 ? format(" --repository-config=%s ", getRepositoryConfig())
                 : EMPTY)
         .append(getValuesOptions())

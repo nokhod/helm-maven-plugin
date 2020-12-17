@@ -3,15 +3,12 @@ package com.kbakhtiari.helm.maven.plugin.pojo;
 import lombok.Data;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import java.util.Map;
-
-
 @Data
 public class ValueOverride {
 
   /** Values that will be passed with the option --set of helm command line. */
   @Parameter(property = "helm.values.overrides")
-  private Map<String, String> overrides;
+  private String overrides;
 
   /**
    * Values that will be passed with the option --set-string to the helm command line.
@@ -19,7 +16,7 @@ public class ValueOverride {
    * <p>This option forces the values to be transformed and manipulated as strings by Go template.
    */
   @Parameter(property = "helm.values.stringOverrides")
-  private Map<String, String> stringOverrides;
+  private String stringOverrides;
 
   /**
    * Values that will be passed with the option --set-file to the helm command line.
@@ -28,7 +25,7 @@ public class ValueOverride {
    * with en entire script you want to insert optionally somewhere for instance.
    */
   @Parameter(property = "helm.values.fileOverrides")
-  private Map<String, String> fileOverrides;
+  private String fileOverrides;
 
   /**
    * Value YAML file that will be passed with option --values or -f of the helm command line.
