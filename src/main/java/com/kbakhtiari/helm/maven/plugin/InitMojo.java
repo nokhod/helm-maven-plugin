@@ -50,9 +50,10 @@ import static org.codehaus.plexus.util.StringUtils.isEmpty;
 @Mojo(name = "init", defaultPhase = LifecyclePhase.INITIALIZE)
 public class InitMojo extends AbstractHelmMojo {
 
+  private static final String AUTH_TEMPLATE = "--username=%s --password=$s";
+  private static final String HELM_DOWNLOAD_URL_TEMPLATE = "https://get.helm.sh/helm-v%s-%s-%s.%s";
   @Parameter(property = "helm.init.skip", defaultValue = "false")
   private boolean skipInit;
-
   @Parameter(property = "helm.init.add-default-repo", defaultValue = "true")
   private boolean addDefaultRepo;
 
@@ -86,7 +87,7 @@ public class InitMojo extends AbstractHelmMojo {
     if (addDefaultRepo) {
       getLog().info("Adding default repo [stable]");
       callCli(
-          getHelmCommand("repo add stable", "https://charts.helm.sh/stable"), "Unable add repo");
+          getCommand("repo add stable https://charts.helm.sh/stable", EMPTY), "Unable add repo");
     }
 
     if (getHelmExtraRepos() != null) {
@@ -114,9 +115,6 @@ public class InitMojo extends AbstractHelmMojo {
       }
     }
   }
-
-  private static final String AUTH_TEMPLATE = "--username=%s --password=$s";
-  private static final String HELM_DOWNLOAD_URL_TEMPLATE = "https://get.helm.sh/helm-v%s-%s-%s.%s";
 
   protected void downloadAndUnpackHelm() throws MojoExecutionException {
 
@@ -232,7 +230,7 @@ public class InitMojo extends AbstractHelmMojo {
     try {
       compressorType = Optional.ofNullable(CompressorStreamFactory.detect(is));
     } catch (CompressorException e) {
-      getLog().debug("Unknown type of compressed stream", e);
+      getLog().debug("Unknown type of compressed stream" + e.getMessage());
     }
 
     // If compressed then wrap with compressor stream
