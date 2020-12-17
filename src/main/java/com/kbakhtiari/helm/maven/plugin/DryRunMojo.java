@@ -1,11 +1,14 @@
 package com.kbakhtiari.helm.maven.plugin;
 
+import com.kbakhtiari.helm.maven.plugin.utils.Constants;
 import lombok.Data;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 
 @Data
 @Mojo(name = "dry-run", defaultPhase = LifecyclePhase.TEST)

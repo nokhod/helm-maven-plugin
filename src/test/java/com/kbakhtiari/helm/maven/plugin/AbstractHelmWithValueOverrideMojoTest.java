@@ -1,11 +1,9 @@
 package com.kbakhtiari.helm.maven.plugin;
 
-import com.kbakhtiari.helm.maven.plugin.AbstractHelmMojo;
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
 import com.kbakhtiari.helm.maven.plugin.pojo.ValueOverride;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.LinkedHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,9 +18,10 @@ class AbstractHelmWithValueOverrideMojoTest {
 
   @Test
   public void normalValueOverride() {
+
     ValueOverride override = new ValueOverride();
-    override.setOverrides(new LinkedHashMap<>());
-    override.getOverrides().put("key1", "value1");
+    override.setOverrides(
+        new Gson().toJson(ImmutableMap.<String, String>builder().put("key1", "value1").build()));
     testMojo.setValues(override);
 
     assertEquals(" --set key1=value1", testMojo.getValuesOptions());
@@ -30,10 +29,15 @@ class AbstractHelmWithValueOverrideMojoTest {
 
   @Test
   public void multipleNormalValueOverrides() {
+
     ValueOverride override = new ValueOverride();
-    override.setOverrides(new LinkedHashMap<>());
-    override.getOverrides().put("key1", "value1");
-    override.getOverrides().put("key2", "value2");
+    override.setOverrides(
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("key1", "value1")
+                    .put("key2", "value2")
+                    .build()));
     testMojo.setValues(override);
 
     assertEquals(" --set key1=value1,key2=value2", testMojo.getValuesOptions());
@@ -41,10 +45,15 @@ class AbstractHelmWithValueOverrideMojoTest {
 
   @Test
   public void stringValueOverrides() {
+
     ValueOverride override = new ValueOverride();
-    override.setStringOverrides(new LinkedHashMap<>());
-    override.getStringOverrides().put("key1", "value1");
-    override.getStringOverrides().put("key2", "value2");
+    override.setStringOverrides(
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("key1", "value1")
+                    .put("key2", "value2")
+                    .build()));
     testMojo.setValues(override);
 
     assertEquals(" --set-string key1=value1,key2=value2", testMojo.getValuesOptions());
@@ -52,10 +61,15 @@ class AbstractHelmWithValueOverrideMojoTest {
 
   @Test
   public void fileValueOverrides() {
+
     ValueOverride override = new ValueOverride();
-    override.setFileOverrides(new LinkedHashMap<>());
-    override.getFileOverrides().put("key1", "path/to/file1.txt");
-    override.getFileOverrides().put("key2", "D:/absolute/path/to/file2.txt");
+    override.setFileOverrides(
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("key1", "path/to/file1.txt")
+                    .put("key2", "D:/absolute/path/to/file2.txt")
+                    .build()));
     testMojo.setValues(override);
 
     assertEquals(
@@ -75,15 +89,27 @@ class AbstractHelmWithValueOverrideMojoTest {
   @Test
   public void allOverrideUsedTogether() {
     ValueOverride override = new ValueOverride();
-    override.setOverrides(new LinkedHashMap<>());
-    override.getOverrides().put("key1", "value1");
-    override.getOverrides().put("key2", "value2");
-    override.setStringOverrides(new LinkedHashMap<>());
-    override.getStringOverrides().put("skey1", "svalue1");
-    override.getStringOverrides().put("skey2", "svalue2");
-    override.setFileOverrides(new LinkedHashMap<>());
-    override.getFileOverrides().put("fkey1", "path/to/file1.txt");
-    override.getFileOverrides().put("fkey2", "D:/absolute/path/to/file2.txt");
+    override.setOverrides(
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("key1", "value1")
+                    .put("key2", "value2")
+                    .build()));
+    override.setStringOverrides(
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("skey1", "svalue1")
+                    .put("skey2", "svalue2")
+                    .build()));
+    override.setFileOverrides(
+        new Gson()
+            .toJson(
+                ImmutableMap.<String, String>builder()
+                    .put("fkey1", "path/to/file1.txt")
+                    .put("fkey2", "D:/absolute/path/to/file2.txt")
+                    .build()));
     override.setYamlFile("path/to/values.yaml");
     testMojo.setValues(override);
 
@@ -95,7 +121,7 @@ class AbstractHelmWithValueOverrideMojoTest {
 
   private static class NoopHelmMojo extends AbstractHelmMojo {
 
-    @Override
+    @java.lang.Override
     public void execute() {
       /* Noop. */
     }
