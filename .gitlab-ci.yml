@@ -1,0 +1,61 @@
+
+image: maven:3.6-openjdk-15-slim
+
+cache:
+  key: '$CI_PROJECT_NAME'
+  paths:
+    - .maven/
+
+before_script:
+  - export MAVEN_USER_HOME=`pwd`/.maven
+
+stages:
+  - initialize
+  - validate
+  - compile
+  - test
+  - package
+  - verify
+  - deploy
+  - release
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+compile:
+  stage: compile
+  script:
+    - mvn compile -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 day
+
+unit-test:
+  stage: test
+  except:
+    - tags
+  script:
+    - mvn test -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 day
+
+package:
+  stage: package
+  except:
+    - tags
+  script:
+    - mvn package -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+
+deploy-jar:
+  stage: deploy
+  script:
+    - export CI_SPRING_PROFILE=dev
+    - mvn deploy --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  when: manual
+  allow_failure: false

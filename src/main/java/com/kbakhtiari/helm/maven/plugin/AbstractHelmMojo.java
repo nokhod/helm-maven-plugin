@@ -404,15 +404,15 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         .append(isVerbose() ? " --debug " : EMPTY)
         .append(
             StringUtils.isNotEmpty(getRegistryConfig())
-                ? format(" --registry-config=%s ", getRegistryConfig())
+                ? format(" --registry-config %s ", getRegistryConfig())
                 : EMPTY)
         .append(
             StringUtils.isNotEmpty(getRepositoryCache())
-                ? format(" --repository-cache=%s ", getRepositoryCache())
+                ? format(" --repository-cache %s ", getRepositoryCache())
                 : EMPTY)
         .append(
             StringUtils.isNotEmpty(getRepositoryConfig())
-                ? format(" --repository-config=%s ", getRepositoryConfig())
+                ? format(" --repository-config %s ", getRepositoryConfig())
                 : EMPTY)
         .append(getValuesOptions())
         .toString();

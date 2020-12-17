@@ -1,6 +1,5 @@
 package com.kbakhtiari.helm.maven.plugin;
 
-import com.kbakhtiari.helm.maven.plugin.InitMojo;
 import com.kbakhtiari.helm.maven.plugin.junit.MojoExtension;
 import com.kbakhtiari.helm.maven.plugin.junit.MojoProperty;
 import com.kbakhtiari.helm.maven.plugin.junit.SystemPropertyExtension;
@@ -38,12 +37,12 @@ import static org.mockito.Mockito.doReturn;
 @MojoProperty(
     name = "helmDownloadUrl",
     value = "https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz")
-public class InitMojoTest {
+class InitMojoTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"darwin", "linux", "windows"})
   @DisplayName("Init helm with different download urls.")
-  public void initMojoHappyPathWhenDownloadHelm(String os, InitMojo mojo) throws Exception {
+  void initMojoHappyPathWhenDownloadHelm(String os, InitMojo mojo) throws Exception {
 
     // prepare execution
     doNothing().when(mojo).callCli(contains("helm "), anyString());
@@ -65,7 +64,7 @@ public class InitMojoTest {
 
   @Test
   @DisplayName("Init helm with a automatically detected URL")
-  public void autoDownloadHelm(InitMojo mojo) throws Exception {
+  void autoDownloadHelm(InitMojo mojo) throws Exception {
 
     // prepare execution
     doNothing().when(mojo).callCli(contains("helm "), anyString());
@@ -88,7 +87,7 @@ public class InitMojoTest {
   }
 
   @Test
-  public void verifyAddingStableByDefault(InitMojo mojo) throws Exception {
+  void verifyAddingStableByDefault(InitMojo mojo) throws Exception {
 
     // prepare execution
     ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
@@ -109,12 +108,12 @@ public class InitMojoTest {
             .orElseThrow(() -> new IllegalArgumentException("Only one helm repo command expected"));
 
     assertTrue(
-        helmDefaultCommand.contains("repo add stable https://charts.helm.sh/stable"),
+        helmDefaultCommand.matches(".*repo\\s+add\\s+stable\\s+https://charts.helm.sh/stable.*"),
         "Adding stable repo by default expected");
   }
 
   @Test
-  public void verifyCustomConfigOptions(InitMojo mojo) throws Exception {
+  void verifyCustomConfigOptions(InitMojo mojo) throws Exception {
 
     // prepare execution
     ArgumentCaptor<String> helmCommandCaptor = ArgumentCaptor.forClass(String.class);
@@ -147,7 +146,7 @@ public class InitMojoTest {
   }
 
   @Test
-  public void verifyLocalHelmBinaryUsage(InitMojo mojo) throws MojoExecutionException {
+  void verifyLocalHelmBinaryUsage(InitMojo mojo) throws MojoExecutionException {
     // Because the download URL is hardcoded to linux, only proceed if the OS is indeed linux.
     assumeTrue(isOSUnix());
 
