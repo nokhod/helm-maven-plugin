@@ -1,12 +1,10 @@
 package com.kbakhtiari.helm.maven.plugin;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import com.kbakhtiari.helm.maven.plugin.pojo.HelmRepository;
 import com.kbakhtiari.helm.maven.plugin.pojo.ValueOverride;
 import com.kbakhtiari.helm.maven.plugin.utils.PackageUtils;
 import lombok.Data;
+import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -32,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -42,8 +41,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.HELM_SECURITY;
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.HELM_VERSION;
 import static com.kbakhtiari.helm.maven.plugin.utils.PackageUtils.toMap;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -52,7 +55,9 @@ import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 @Data
 public abstract class AbstractHelmMojo extends AbstractMojo {
 
-  private static final String KEY_VALUE_TEMPLATE = "%s=%s";
+  private static final String KEY_STRING_VALUE_TEMPLATE = "%s=%s";
+  private static final String KEY_LIST_VALUE_TEMPLATE = "%s[%d]=%s";
+  private static final String KEY_LIST_SUB_VALUE_TEMPLATE = "%s[%d].%s";
 
   @Parameter(property = "helm.skip", defaultValue = "false")
   protected boolean skip;
@@ -100,11 +105,20 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   @Parameter(property = "helm.downloadUrl")
   private String helmDownloadUrl;
 
-  @Parameter(property = "helm.version", defaultValue = "3.2.0")
+  @Parameter(property = "helm.version", defaultValue = HELM_VERSION)
   private String helmVersion;
 
   @Parameter(property = "helm.registryConfig")
   private String registryConfig;
+
+  @Parameter(property = "helm.registryUrl")
+  private String registryUrl;
+
+  @Parameter(property = "helm.registryUsername")
+  private String registryUsername;
+
+  @Parameter(property = "helm.registryPassword")
+  private String registryPassword;
 
   @Parameter(property = "helm.repositoryCache")
   private String repositoryCache;
@@ -115,7 +129,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   @Parameter(property = "helm.extraRepos")
   private HelmRepository[] helmExtraRepos;
 
-  @Parameter(property = "helm.security", defaultValue = "~/.m2/settings-security.xml")
+  @Parameter(property = "helm.security", defaultValue = HELM_SECURITY)
   private String helmSecurity;
 
   @Parameter(property = "helm.releaseName")
@@ -130,22 +144,35 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   @Parameter(defaultValue = "${settings}", readonly = true)
   private Settings settings;
 
-  private static boolean isJSONValid(String jsonInString) {
-    try {
-      final Gson gson = new GsonBuilder().create();
-      gson.fromJson(jsonInString, Map.class);
-      return true;
-    } catch (JsonSyntaxException ex) {
-      return false;
-    }
-  }
+  @SneakyThrows
+  private static <U> String getKeyValue(String key, U value) {
 
-  private static String getKeyValue(String key, String value) {
-
-    if (isEmpty(key) && isEmpty(value)) {
+    if (isEmpty(key)
+        && ((value instanceof String && isEmpty((String) value))
+            || (value instanceof Collection && isEmpty((Collection) value)))) {
       return EMPTY;
     }
-    return format(KEY_VALUE_TEMPLATE, key, value);
+    if (value instanceof String) {
+      return format(KEY_STRING_VALUE_TEMPLATE, key, value);
+    } else if (value instanceof Collection) {
+      List<U> convertedList = (List<U>) value;
+      for (int count = 0; count < convertedList.size(); count++) {
+        U item = convertedList.get(count);
+        if (item instanceof String) {
+          return String.format(KEY_LIST_VALUE_TEMPLATE, key, count, item);
+        } else if (item instanceof Map) {
+          final int finalCounter = count;
+          return ((Map<String, U>) item)
+              .keySet().stream()
+                  .map(subMapKey -> getKeyValue(subMapKey, ((Map) item).get(subMapKey)))
+                  .map(el -> String.format(KEY_LIST_SUB_VALUE_TEMPLATE, key, finalCounter, el))
+                  .collect(joining(","));
+        }
+      }
+    } else {
+      throw new MojoExecutionException("The specified value's type is unknown");
+    }
+    return "";
   }
 
   Path getHelmExecutablePath() throws MojoExecutionException {
@@ -368,8 +395,8 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
     final Map<String, ?> flattenOverrides = PackageUtils.flattenOverrides(overrides);
     return flattenOverrides.keySet().stream()
-        .map(key -> getKeyValue(key, (String) flattenOverrides.get(key)))
-        .collect(Collectors.joining(","));
+        .map(key -> getKeyValue(key, flattenOverrides.get(key)))
+        .collect(joining(","));
   }
 
   protected final String getCommand(String action, String inputDirectory)
@@ -378,7 +405,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     return getCommand(action, EMPTY, inputDirectory);
   }
 
-  protected final String getHelmCommand(String action, String args) throws MojoExecutionException {
+  protected String getHelmCommand(String action, String args) throws MojoExecutionException {
 
     return new StringBuilder()
         .append(getHelmExecutablePath())
