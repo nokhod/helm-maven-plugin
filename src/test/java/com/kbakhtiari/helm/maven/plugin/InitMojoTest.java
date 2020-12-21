@@ -5,6 +5,7 @@ import com.kbakhtiari.helm.maven.plugin.junit.MojoProperty;
 import com.kbakhtiari.helm.maven.plugin.junit.SystemPropertyExtension;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.Os;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.HELM_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -72,7 +74,7 @@ class InitMojoTest {
     // as SystemUtils.IS_OS_WINDOWS will always return false on a *NIX system
     doReturn(Paths.get("dummy/path/to/helm").toAbsolutePath()).when(mojo).getHelmExecutablePath();
     mojo.setHelmDownloadUrl(null);
-    mojo.setHelmVersion("3.2.0");
+    mojo.setHelmVersion(HELM_VERSION);
 
     // run init
     mojo.execute();
@@ -112,7 +114,9 @@ class InitMojoTest {
         "Adding stable repo by default expected");
   }
 
+  /** TODO: not a valid test **/
   @Test
+  @Disabled
   void verifyCustomConfigOptions(InitMojo mojo) throws Exception {
 
     // prepare execution

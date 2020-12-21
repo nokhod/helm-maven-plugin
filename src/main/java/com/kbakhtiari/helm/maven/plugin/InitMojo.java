@@ -52,8 +52,10 @@ public class InitMojo extends AbstractHelmMojo {
 
   private static final String AUTH_TEMPLATE = "--username=%s --password=$s";
   private static final String HELM_DOWNLOAD_URL_TEMPLATE = "https://get.helm.sh/helm-v%s-%s-%s.%s";
+
   @Parameter(property = "helm.init.skip", defaultValue = "false")
   private boolean skipInit;
+
   @Parameter(property = "helm.init.add-default-repo", defaultValue = "true")
   private boolean addDefaultRepo;
 
@@ -87,7 +89,8 @@ public class InitMojo extends AbstractHelmMojo {
     if (addDefaultRepo) {
       getLog().info("Adding default repo [stable]");
       callCli(
-          getCommand("repo add stable https://charts.helm.sh/stable", EMPTY), "Unable add repo");
+          getHelmCommand("repo add stable https://charts.helm.sh/stable", EMPTY),
+          "Unable add repo");
     }
 
     if (getHelmExtraRepos() != null) {
@@ -110,7 +113,7 @@ public class InitMojo extends AbstractHelmMojo {
                                 String.valueOf(auth.getPassword()))
                             : EMPTY)
                     .toString(),
-                ""),
+                EMPTY),
             "Unable add repo");
       }
     }

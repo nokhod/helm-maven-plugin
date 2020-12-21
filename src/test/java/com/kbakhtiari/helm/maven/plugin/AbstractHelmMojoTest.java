@@ -73,13 +73,26 @@ class AbstractHelmMojoTest {
         (String)
             appendOverrides.invoke(
                 new AbstractHelmMojo() {
-                  @java.lang.Override
+                  @Override
                   public void execute() throws MojoExecutionException, MojoFailureException {}
                 },
                 ImmutableMap.builder()
+                    .put(
+                        "ingress",
+                        ImmutableMap.builder()
+                            .put(
+                                "hosts",
+                                asList(
+                                    ImmutableMap.builder()
+                                        .put("host", "kbakhtiari.com")
+                                        .put("paths", asList("KHODA"))
+                                        .build()))
+                            .build())
                     .put("ingress.annotations.external-dns.alpha.kubernetes.io/target", "nginx")
                     .build());
-    assertEquals("ingress.annotations.external-dns.alpha.kubernetes.io/target=nginx", invoke);
+    assertEquals(
+        "ingress.annotations.external-dns.alpha.kubernetes.io/target=nginx,ingress.hosts[0].host=kbakhtiari.com,ingress.hosts[0].paths[0]=KHODA",
+        invoke);
   }
 
   @Test
@@ -146,7 +159,7 @@ class AbstractHelmMojoTest {
 
   private static class NoopHelmMojo extends AbstractHelmMojo {
 
-    @java.lang.Override
+    @Override
     public void execute() {
       /* Noop. */
     }

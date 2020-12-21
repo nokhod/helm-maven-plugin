@@ -17,4 +17,11 @@ public class Constants {
             .append(System.lineSeparator())
             .toString();
   }
+
+  @NoArgsConstructor(access = AccessLevel.PRIVATE)
+  public static class MojoDefaultConstants {
+
+    public static final String HELM_VERSION = "3.4.2";
+    public static final String HELM_SECURITY = "~/.m2/settings-security.xml";
+  }
 }
