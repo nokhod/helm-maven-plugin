@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
-@EnabledOnOs(OS.LINUX)
+@EnabledOnOs({OS.LINUX, OS.MAC})
 @MojoProperty(name = "chartVersion", value = "0.0.1")
 @MojoProperty(name = "chartDirectory", value = "junit-helm")
 @ExtendWith({SystemPropertyExtension.class, MojoExtension.class})
@@ -114,7 +114,7 @@ class InitMojoTest {
         "Adding stable repo by default expected");
   }
 
-  /** TODO: not a valid test **/
+  /** TODO: not a valid test * */
   @Test
   @Disabled
   void verifyCustomConfigOptions(InitMojo mojo) throws Exception {
@@ -128,7 +128,7 @@ class InitMojoTest {
     mojo.setRepositoryConfig("/path/to/my/repositories.yaml");
     mojo.setAddDefaultRepo(true);
 
-    // run init
+    // run initsed -i
     mojo.execute();
 
     // check captured argument

@@ -1,9 +1,16 @@
 package com.kbakhtiari.helm.maven.plugin.pojo;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.maven.plugins.annotations.Parameter;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class HelmRepository {
 
   /**
@@ -26,5 +33,4 @@ public class HelmRepository {
 
   @Parameter(property = "helm.repo.type")
   private RepoType type;
-
 }

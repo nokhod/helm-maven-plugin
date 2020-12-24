@@ -179,6 +179,21 @@
                                 <helmVersion>${helm.version}</helmVersion>
                                 <namespace>${env.CI_SPRING_PROFILE}</namespace>
                                 <chartDirectory>${env.CI_CHART_DIRECTORY}</chartDirectory>
+                                <uploadRepoStable>
+                                    <name>gitlab</name>
+                                    <url>${env.CI_REGISTRY}/${env.CI_PROJECT_NAMESPACE}</url>
+                                    <username>${env.CI_REGISTRY_USER}</username>
+                                    <password>${env.CI_REGISTRY_PASSWORD}</password>
+                                    <type>GITLAB</type>
+                                </uploadRepoStable>
+                                <uploadRepoSnapshot>
+                                    <name>gitlab</name>
+                                    <url>${env.CI_REGISTRY}/${env.CI_PROJECT_NAMESPACE}</url>
+                                    <username>${env.CI_REGISTRY_USER}</username>
+                                    <password>${env.CI_REGISTRY_PASSWORD}</password>
+                                    <type>GITLAB</type>
+                                </uploadRepoSnapshot>
+                                <!-- to remove -->
                                 <registryUrl>${env.CI_REGISTRY}</registryUrl>
                                 <registryUsername>${env.CI_REGISTRY_USER}</registryUsername>
                                 <registryPassword>${env.CI_REGISTRY_PASSWORD}</registryPassword>
