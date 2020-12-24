@@ -6,8 +6,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
-import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
-
 @Data
 @Mojo(name = "template", defaultPhase = LifecyclePhase.VERIFY)
 public class TemplateMojo extends AbstractHelmMojo {
@@ -16,7 +14,7 @@ public class TemplateMojo extends AbstractHelmMojo {
 
     for (String inputDirectory : getChartDirectories(getChartDirectory())) {
 
-      getLog().info(String.format(LOG_TEMPLATE, "templating the chart " + inputDirectory));
+      getLog().info("templating the chart " + inputDirectory);
 
       callCli(getCommand("template", inputDirectory), "There are test failures");
     }

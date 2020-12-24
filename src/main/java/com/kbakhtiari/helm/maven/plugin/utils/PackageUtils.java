@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -88,8 +87,7 @@ public class PackageUtils {
   public static void overrideValuesFile(
       String inputDirectory, Map<String, ?> overrides, Log logger) {
 
-    logger.info(
-        format(LOG_TEMPLATE, "rewriting the values.yaml with override values " + inputDirectory));
+    logger.info(format("rewriting the values.yaml with override values " + inputDirectory));
     try {
       final Path path =
           Paths.get(

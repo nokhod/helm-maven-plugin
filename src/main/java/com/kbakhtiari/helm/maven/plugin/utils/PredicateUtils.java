@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PredicateUtils {
 
-    public static <T> Predicate<T> not(Predicate<T> t) {
-        return t.negate();
-    }
+  public static <T> Predicate<T> not(Predicate<T> t) {
+    return t.negate();
+  }
 }

@@ -68,9 +68,6 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   @Parameter(property = "helm.skip", defaultValue = FALSE)
   protected boolean skip;
 
-  @Component(role = SecDispatcher.class, hint = "default")
-  private SecDispatcher securityDispatcher;
-
   @Parameter(property = "helm.useLocalHelmBinary", defaultValue = FALSE)
   private boolean useLocalHelmBinary;
 
@@ -313,52 +310,6 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     return uploadRepoStable;
   }
 
-  PasswordAuthentication getAuthentication(HelmRepository repository)
-      throws MojoExecutionException {
-
-    String id = repository.getName();
-
-    if (isNotEmpty(repository.getUsername())) {
-      if (isEmpty(repository.getPassword())) {
-        throw new IllegalArgumentException(
-            format("Repo %s has a username but no password defined.", id));
-      }
-      getLog().debug(format("Repo %s has credentials defined, skip searching in server list.", id));
-      return new PasswordAuthentication(
-          repository.getUsername(), repository.getPassword().toCharArray());
-    }
-
-    Server server = settings.getServer(id);
-    if (isNull(server)) {
-      getLog()
-          .info(
-              format(
-                  "No credentials found for %s in configuration or settings.xml server list.", id));
-      return null;
-    }
-
-    getLog().debug(format("Use credentials from server list for %s.", id));
-    if (isEmpty(server.getUsername()) || isEmpty(server.getPassword())) {
-      throw new IllegalArgumentException(
-          format("Repo %s was found in server list but has no username/password.", id));
-    }
-
-    try {
-      return new PasswordAuthentication(
-          server.getUsername(), getSecDispatcher().decrypt(server.getPassword()).toCharArray());
-    } catch (SecDispatcherException e) {
-      throw new MojoExecutionException(e.getMessage());
-    }
-  }
-
-  protected SecDispatcher getSecDispatcher() {
-
-    if (securityDispatcher instanceof DefaultSecDispatcher) {
-      ((DefaultSecDispatcher) securityDispatcher).setConfigurationFile(getHelmSecurity());
-    }
-    return securityDispatcher;
-  }
-
   protected String getValuesOptions() {
 
     StringBuilder setValuesOptions = new StringBuilder();
@@ -407,7 +358,6 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
         .toString();
   }
 
-  @Deprecated
   protected final String getCommand(String action, String args, String inputDirectory)
       throws MojoExecutionException {
 

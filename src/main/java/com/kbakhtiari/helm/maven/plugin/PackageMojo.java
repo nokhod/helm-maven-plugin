@@ -1,5 +1,6 @@
 package com.kbakhtiari.helm.maven.plugin;
 
+import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -7,12 +8,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.util.Map;
 
-import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 import static com.kbakhtiari.helm.maven.plugin.utils.PackageUtils.overrideValuesFile;
 import static com.kbakhtiari.helm.maven.plugin.utils.PackageUtils.toMap;
 import static java.lang.String.format;
 import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
 
+@Data
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE)
 public class PackageMojo extends AbstractHelmMojo {
 
@@ -29,7 +30,7 @@ public class PackageMojo extends AbstractHelmMojo {
 
     for (String inputDirectory : getChartDirectories(getChartDirectory())) {
 
-      getLog().info(format(LOG_TEMPLATE, "Packaging chart " + inputDirectory));
+      getLog().info("Packaging chart " + inputDirectory);
 
       // final Map normalizeMapKeys = flattenOverrides(toMap(getValues().getOverrides()));
       final Map overridesMap = toMap(getValues().getOverrides());
@@ -40,8 +41,7 @@ public class PackageMojo extends AbstractHelmMojo {
           new StringBuilder(format("%s -d %s", inputDirectory, getOutputDirectory()));
 
       if (isNotEmpty(getChartVersion())) {
-        getLog()
-            .info(format(LOG_TEMPLATE, format("Setting chart version to %s", getChartVersion())));
+        getLog().info(format("Setting chart version to %s", getChartVersion()));
         args.append(" --version ").append(getChartVersion());
       }
 

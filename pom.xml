@@ -44,16 +44,6 @@
         <url>https://gitlab.com/ikbengeweldig/helm-maven-plugin/-/tree/master</url>
         <tag>HEAD</tag>
     </scm>
-    <distributionManagement>
-        <repository>
-            <id>gitlab-maven-${env.CI_PROJECT_ID}</id>
-            <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
-        </repository>
-        <snapshotRepository>
-            <id>gitlab-maven-${env.CI_PROJECT_ID}</id>
-            <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <properties>
 
@@ -164,7 +154,52 @@
 
     <profiles>
         <profile>
+            <id>maven-central</id>
+            <distributionManagement>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-release-plugin</artifactId>
+                            <configuration>
+                                <localCheckout>true</localCheckout>
+                                <pushChanges>true</pushChanges>
+                                <mavenExecutorId>forked-path</mavenExecutorId>
+                            </configuration>
+                            <dependencies>
+                                <dependency>
+                                    <groupId>org.apache.maven.scm</groupId>
+                                    <artifactId>maven-scm-provider-gitexe</artifactId>
+                                    <version>1.11.2</version>
+                                </dependency>
+                            </dependencies>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
             <id>test</id>
+            <distributionManagement>
+                <repository>
+                    <id>gitlab-maven-${env.CI_PROJECT_ID}</id>
+                    <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
+                </repository>
+                <snapshotRepository>
+                    <id>gitlab-maven-${env.CI_PROJECT_ID}</id>
+                    <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
+                </snapshotRepository>
+            </distributionManagement>
             <build>
                 <pluginManagement>
                     <plugins>
@@ -184,19 +219,13 @@
                                     <url>${env.CI_REGISTRY}/${env.CI_PROJECT_NAMESPACE}</url>
                                     <username>${env.CI_REGISTRY_USER}</username>
                                     <password>${env.CI_REGISTRY_PASSWORD}</password>
-                                    <type>GITLAB</type>
                                 </uploadRepoStable>
                                 <uploadRepoSnapshot>
                                     <name>gitlab</name>
                                     <url>${env.CI_REGISTRY}/${env.CI_PROJECT_NAMESPACE}</url>
                                     <username>${env.CI_REGISTRY_USER}</username>
                                     <password>${env.CI_REGISTRY_PASSWORD}</password>
-                                    <type>GITLAB</type>
                                 </uploadRepoSnapshot>
-                                <!-- to remove -->
-                                <registryUrl>${env.CI_REGISTRY}</registryUrl>
-                                <registryUsername>${env.CI_REGISTRY_USER}</registryUsername>
-                                <registryPassword>${env.CI_REGISTRY_PASSWORD}</registryPassword>
                                 <values>
                                     <overrides>
                                         {

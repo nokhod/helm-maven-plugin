@@ -120,13 +120,6 @@ public class MojoExtension implements ParameterResolver, BeforeAllCallback, Befo
 
       getField(mojoType, "settings").set(mojo, new Settings());
 
-      // plexus SecDispatcher
-
-      SecDispatcher secDispatcher = spy(DefaultSecDispatcher.class);
-      // FieldSetter.setField(secDispatcher, DefaultSecDispatcher.class.getDeclaredField("_cipher"),
-      // new DefaultPlexusCipher());
-      getField(mojoType, "securityDispatcher").set(mojo, secDispatcher);
-
       // validate that every parameter is set
 
       for (Parameter paramter : descriptor.getParameters()) {

@@ -3,13 +3,10 @@ package com.kbakhtiari.helm.maven.plugin;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.kbakhtiari.helm.maven.plugin.pojo.HelmRepository;
-import com.kbakhtiari.helm.maven.plugin.pojo.RepoType;
 import com.kbakhtiari.helm.maven.plugin.pojo.ValueOverride;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.settings.Server;
-import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -17,14 +14,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.PasswordAuthentication;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,14 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -162,7 +153,6 @@ class AbstractHelmMojoTest {
     private final HelmRepository helmRepo =
         HelmRepository.builder()
             .name("DUMMY_REPO_NAME")
-            .type(RepoType.ARTIFACTORY)
             .url("http://localhost:5000")
             .username("DUMMY_REPO_USERNAME")
             .password("DUMMY_REPO_PASSWORD")
@@ -556,129 +546,6 @@ class AbstractHelmMojoTest {
       final Path expectedPath = addHelmToTestPath();
       assertEquals(expectedPath, subjectSpy.getHelmExecutablePath());
       assertNotEquals(explicitExecutableDirectory, subjectSpy.getHelmExecutablePath());
-    }
-  }
-
-  @Nested
-  class GetAuthentication {
-
-    private final HelmRepository helmRepo =
-        HelmRepository.builder()
-            .name("DUMMY_REPO_NAME")
-            .type(RepoType.ARTIFACTORY)
-            .url("http://localhost:5000")
-            .username("DUMMY_REPO_USERNAME")
-            .password("DUMMY_REPO_PASSWORD")
-            .build();
-
-    @Test
-    void repoUsernameNotEmptyRepoPasswordEmpty() {
-
-      helmRepo.setPassword(EMPTY);
-      assertThrows(
-          IllegalArgumentException.class,
-          () -> {
-            subjectSpy.getAuthentication(helmRepo);
-          });
-    }
-
-    @Test
-    void repoWithUsernameAndPassword() throws MojoExecutionException {
-
-      final PasswordAuthentication result = subjectSpy.getAuthentication(helmRepo);
-      assertEquals(helmRepo.getUsername(), result.getUserName());
-      assertEquals(helmRepo.getPassword(), new String(result.getPassword()));
-    }
-
-    @Test
-    void lookUpSettingWithNullServer() throws MojoExecutionException {
-
-      helmRepo.setUsername(EMPTY);
-      final Settings settings = mock(Settings.class);
-      doReturn(null).when(settings).getServer(anyString());
-      subjectSpy.setSettings(settings);
-
-      assertNull(subjectSpy.getAuthentication(helmRepo));
-    }
-
-    @Test
-    void lookUpSettingWithProperServer() throws MojoExecutionException, SecDispatcherException {
-
-      final String dummyServerUsername = "DUMMY_SERVER_USERNAME";
-      final String dummyServerPasswordEncrypted = "DUMMY_SERVER_DECRYPTED_PASSWORD";
-      helmRepo.setUsername(EMPTY);
-      final Settings settings = mock(Settings.class);
-      final Server server = mock(Server.class);
-      doReturn(dummyServerUsername).when(server).getUsername();
-      doReturn("DUMMY_SERVER_PASSWORD").when(server).getPassword();
-      doReturn(server).when(settings).getServer(anyString());
-      subjectSpy.setSettings(settings);
-
-      SecDispatcher secDispatcher = mock(SecDispatcher.class);
-      doReturn(dummyServerPasswordEncrypted).when(secDispatcher).decrypt(anyString());
-      subjectSpy.setSecurityDispatcher(secDispatcher);
-
-      final PasswordAuthentication result = subjectSpy.getAuthentication(helmRepo);
-      assertEquals(dummyServerUsername, result.getUserName());
-      assertEquals(dummyServerPasswordEncrypted, new String(result.getPassword()));
-    }
-
-    @Test
-    void lookUpSettingWithImproperServer() throws SecDispatcherException {
-
-      final String dummyServerUsername = "DUMMY_SERVER_USERNAME";
-      helmRepo.setUsername(EMPTY);
-      final Settings settings = mock(Settings.class);
-      final Server server = mock(Server.class);
-      doReturn(dummyServerUsername).when(server).getUsername();
-      doReturn("DUMMY_SERVER_PASSWORD").when(server).getPassword();
-      doReturn(server).when(settings).getServer(anyString());
-      subjectSpy.setSettings(settings);
-
-      SecDispatcher secDispatcher = mock(SecDispatcher.class);
-      doThrow(SecDispatcherException.class).when(secDispatcher).decrypt(anyString());
-      subjectSpy.setSecurityDispatcher(secDispatcher);
-
-      assertThrows(
-          MojoExecutionException.class,
-          () -> {
-            subjectSpy.getAuthentication(helmRepo);
-          });
-    }
-
-    @Test
-    void lookUpSettingWithServerEmptyUsername() {
-
-      helmRepo.setUsername(EMPTY);
-      final Settings settings = mock(Settings.class);
-      final Server server = mock(Server.class);
-      doReturn(EMPTY).when(server).getUsername();
-      doReturn(server).when(settings).getServer(anyString());
-      subjectSpy.setSettings(settings);
-
-      assertThrows(
-          IllegalArgumentException.class,
-          () -> {
-            subjectSpy.getAuthentication(helmRepo);
-          });
-    }
-
-    @Test
-    void lookUpSettingWithServerEmptyPassword() {
-
-      helmRepo.setUsername(EMPTY);
-      final Settings settings = mock(Settings.class);
-      final Server server = mock(Server.class);
-      doReturn("DUMMY_SERVER_USERNAME").when(server).getUsername();
-      doReturn(EMPTY).when(server).getPassword();
-      doReturn(server).when(settings).getServer(anyString());
-      subjectSpy.setSettings(settings);
-
-      assertThrows(
-          IllegalArgumentException.class,
-          () -> {
-            subjectSpy.getAuthentication(helmRepo);
-          });
     }
   }
 

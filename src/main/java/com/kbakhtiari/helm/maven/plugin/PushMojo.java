@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
-import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.FALSE;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -50,11 +49,11 @@ public class PushMojo extends AbstractHelmMojo {
             EMPTY),
         "Unable to login to the registry: " + registry.getUrl());
 
-    getLog().info(format(LOG_TEMPLATE, "Uploading to " + registry.getUrl()));
+    getLog().info("Uploading to " + registry.getUrl());
     getChartTgzs(getOutputDirectory())
         .forEach(
             chartTgzFile -> {
-              getLog().info(format(LOG_TEMPLATE, "Uploading " + chartTgzFile));
+              getLog().info("Uploading " + chartTgzFile);
               try {
                 uploadSingle(Paths.get(chartTgzFile), registry);
               } catch (MojoExecutionException e) {

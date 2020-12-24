@@ -21,7 +21,6 @@ import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -42,15 +41,17 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.kbakhtiari.helm.maven.plugin.utils.PredicateUtils.not;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.codehaus.plexus.util.StringUtils.isEmpty;
 
 @Data
 @Mojo(name = "init", defaultPhase = LifecyclePhase.INITIALIZE)
 public class InitMojo extends AbstractHelmMojo {
 
-  private static final String AUTH_TEMPLATE = "--username=%s --password=$s";
+  private static final String AUTH_TEMPLATE = "--username=%s --password=%s";
+  private static final String ADD_REPO_TEMPLATE = "repo add %s %s %s";
   private static final String HELM_DOWNLOAD_URL_TEMPLATE = "https://get.helm.sh/helm-v%s-%s-%s.%s";
 
   @Parameter(property = "helm.init.skip", defaultValue = "false")
@@ -95,26 +96,25 @@ public class InitMojo extends AbstractHelmMojo {
 
     if (getHelmExtraRepos() != null) {
       for (HelmRepository repository : getHelmExtraRepos()) {
-        getLog().info("Adding repo [" + repository + "]");
-        PasswordAuthentication auth = getAuthentication(repository);
-        callCli(
-            getCommand(
-                new StringBuilder("repo add")
-                    .append(SPACE)
-                    .append(repository.getName())
-                    .append(SPACE)
-                    .append(repository.getUrl())
-                    .append(SPACE)
-                    .append(
-                        !Objects.isNull(auth)
-                            ? String.format(
-                                AUTH_TEMPLATE,
-                                auth.getUserName(),
-                                String.valueOf(auth.getPassword()))
-                            : EMPTY)
-                    .toString(),
-                EMPTY),
-            "Unable add repo");
+
+        getLog()
+            .info(
+                new StringBuilder()
+                    .append("Adding repo [")
+                    .append(repository)
+                    .append("]")
+                    .toString());
+
+        final String command =
+            format(
+                ADD_REPO_TEMPLATE,
+                repository.getName(),
+                repository.getUrl(),
+                isNotEmpty(repository.getUsername()) && isNotEmpty(repository.getUsername())
+                    ? format(AUTH_TEMPLATE, repository.getUsername(), repository.getUsername())
+                    : EMPTY);
+
+        callCli(getHelmCommand(command, EMPTY), "Unable add repo");
       }
     }
   }
@@ -132,8 +132,7 @@ public class InitMojo extends AbstractHelmMojo {
       String os = getOperatingSystem();
       String architecture = getArchitecture();
       String extension = getExtension();
-      url =
-          String.format(HELM_DOWNLOAD_URL_TEMPLATE, getHelmVersion(), os, architecture, extension);
+      url = format(HELM_DOWNLOAD_URL_TEMPLATE, getHelmVersion(), os, architecture, extension);
     }
 
     getLog().debug("Downloading Helm: " + url);
