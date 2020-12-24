@@ -5,8 +5,8 @@ import com.kbakhtiari.helm.maven.plugin.pojo.ValueOverride;
 import com.kbakhtiari.helm.maven.plugin.utils.PackageUtils;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -29,8 +29,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,37 +38,43 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.ExceptionMessages.UNKNOWN_VALUE_TYPE_MESSAGE;
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.FALSE;
 import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.HELM_SECURITY;
 import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.HELM_VERSION;
+import static com.kbakhtiari.helm.maven.plugin.utils.Constants.MojoDefaultConstants.TRUE;
+import static com.kbakhtiari.helm.maven.plugin.utils.JavaUtils.nvl;
 import static com.kbakhtiari.helm.maven.plugin.utils.PackageUtils.toMap;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.codehaus.plexus.util.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Data
 public abstract class AbstractHelmMojo extends AbstractMojo {
 
-  private static final String KEY_STRING_VALUE_TEMPLATE = "%s=%s";
-  private static final String KEY_LIST_VALUE_TEMPLATE = "%s[%d]=%s";
-  private static final String KEY_LIST_SUB_VALUE_TEMPLATE = "%s[%d].%s";
+  private static final String STRING_KEY_STRING_VALUE_TEMPLATE = "%s=%s";
+  private static final String STRING_KEY_LIST_VALUE_TEMPLATE = "%s[%d]=%s";
+  private static final String STRING_KEY_LIST_SUB_VALUE_TEMPLATE = "%s[%d].%s";
 
-  @Parameter(property = "helm.skip", defaultValue = "false")
+  @Parameter(property = "helm.skip", defaultValue = FALSE)
   protected boolean skip;
 
   @Component(role = SecDispatcher.class, hint = "default")
   private SecDispatcher securityDispatcher;
 
-  @Parameter(property = "helm.useLocalHelmBinary", defaultValue = "false")
+  @Parameter(property = "helm.useLocalHelmBinary", defaultValue = FALSE)
   private boolean useLocalHelmBinary;
 
-  @Parameter(property = "helm.autoDetectLocalHelmBinary", defaultValue = "true")
+  @Parameter(property = "helm.autoDetectLocalHelmBinary", defaultValue = TRUE)
   private boolean autoDetectLocalHelmBinary;
 
   @Parameter(
@@ -81,7 +87,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
       defaultValue = "${project.build.directory}/helm/repo")
   private String outputDirectory;
 
-  @Parameter(property = "helm.verbose", defaultValue = "false")
+  @Parameter(property = "helm.verbose", defaultValue = FALSE)
   private boolean verbose;
 
   @Parameter(property = "helm.excludes")
@@ -111,15 +117,6 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   @Parameter(property = "helm.registryConfig")
   private String registryConfig;
 
-  @Parameter(property = "helm.registryUrl")
-  private String registryUrl;
-
-  @Parameter(property = "helm.registryUsername")
-  private String registryUsername;
-
-  @Parameter(property = "helm.registryPassword")
-  private String registryPassword;
-
   @Parameter(property = "helm.repositoryCache")
   private String repositoryCache;
 
@@ -145,34 +142,36 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   private Settings settings;
 
   @SneakyThrows
-  private static <U> String getKeyValue(String key, U value) {
+  private static <U extends Object> List<String> getKeyValue(String key, U value) {
 
-    if (isEmpty(key)
-        && ((value instanceof String && isEmpty((String) value))
-            || (value instanceof Collection && isEmpty((Collection) value)))) {
-      return EMPTY;
+    if (isEmpty(key)) {
+      return Collections.EMPTY_LIST;
     }
-    if (value instanceof String) {
-      return format(KEY_STRING_VALUE_TEMPLATE, key, value);
+    if (isNull(value) || value instanceof String) {
+      return asList(format(STRING_KEY_STRING_VALUE_TEMPLATE, key, nvl(value, EMPTY)));
     } else if (value instanceof Collection) {
       List<U> convertedList = (List<U>) value;
-      for (int count = 0; count < convertedList.size(); count++) {
-        U item = convertedList.get(count);
-        if (item instanceof String) {
-          return String.format(KEY_LIST_VALUE_TEMPLATE, key, count, item);
-        } else if (item instanceof Map) {
-          final int finalCounter = count;
-          return ((Map<String, U>) item)
-              .keySet().stream()
-                  .map(subMapKey -> getKeyValue(subMapKey, ((Map) item).get(subMapKey)))
-                  .map(el -> String.format(KEY_LIST_SUB_VALUE_TEMPLATE, key, finalCounter, el))
-                  .collect(joining(","));
-        }
-      }
+      return IntStream.range(0, convertedList.size())
+          .mapToObj(
+              index -> {
+                U item = convertedList.get(index);
+                if (item instanceof String) {
+                  return format(STRING_KEY_LIST_VALUE_TEMPLATE, key, index, item);
+                } else if (item instanceof Map) {
+                  final Map<String, U> convertedMap = (Map<String, U>) item;
+                  return convertedMap.keySet().stream()
+                      .map(subMapKey -> getKeyValue(subMapKey, convertedMap.get(subMapKey)))
+                      .flatMap(List::stream)
+                      .map(el -> format(STRING_KEY_LIST_SUB_VALUE_TEMPLATE, key, index, el))
+                      .collect(joining(","));
+                } else {
+                  throw new RuntimeException(UNKNOWN_VALUE_TYPE_MESSAGE);
+                }
+              })
+          .collect(toList());
     } else {
-      throw new MojoExecutionException("The specified value's type is unknown");
+      throw new MojoExecutionException(UNKNOWN_VALUE_TYPE_MESSAGE);
     }
-    return "";
   }
 
   Path getHelmExecutablePath() throws MojoExecutionException {
@@ -207,11 +206,9 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
   void callCli(String command, String errorMessage) throws MojoExecutionException {
 
-    getLog().debug("executing helm command: " + command);
+    getLog().debug("executing command: " + command);
 
     AtomicInteger exitValue = new AtomicInteger(0);
-
-    getLog().debug(command);
 
     try {
       final Process p = Runtime.getRuntime().exec(command);
@@ -225,7 +222,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
                   } else {
                     getLog().debug(inputLine);
                   }
-                  if (StringUtils.isNotEmpty(errorLine)) {
+                  if (isNotBlank(errorLine)) {
                     getLog().error(errorLine);
                   }
                 } catch (IOException e) {
@@ -236,7 +233,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
       p.waitFor();
       exitValue.set(p.exitValue());
     } catch (Exception e) {
-      throw new MojoExecutionException("Error processing command [" + command + "]", e);
+      throw new MojoExecutionException(format("Error processing command [%s]", command), e);
     }
 
     if (exitValue.get() != 0) {
@@ -249,7 +246,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     List<String> exclusions = new ArrayList<>();
 
     if (getExcludes() != null) {
-      exclusions.addAll(Arrays.asList(getExcludes()));
+      exclusions.addAll(asList(getExcludes()));
     }
 
     exclusions.addAll(FileUtils.getDefaultExcludesAsList());
@@ -262,7 +259,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
               .filter(p -> p.getFileName().toString().equalsIgnoreCase("chart.yaml"))
               .map(p -> p.getParent().toString())
               .filter(shouldIncludeDirectory(exclusionPatterns))
-              .collect(Collectors.toList());
+              .collect(toList());
 
       if (chartDirs.isEmpty()) {
         getLog().warn("No Charts detected - no Chart.yaml files found below " + path);
@@ -275,6 +272,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   }
 
   private Predicate<String> shouldIncludeDirectory(MatchPatterns exclusionPatterns) {
+
     return inputDirectory -> {
       boolean matches = exclusionPatterns.matches(inputDirectory, Boolean.FALSE);
 
@@ -288,11 +286,12 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
   }
 
   List<String> getChartTgzs(String path) throws MojoExecutionException {
+
     try (Stream<Path> files = Files.walk(Paths.get(path))) {
       return files
-          .filter(p -> p.getFileName().toString().endsWith("tgz"))
+          .filter(p -> FileNameUtils.getExtension(p.toFile().getName()).equals("tgz"))
           .map(Path::toString)
-          .collect(Collectors.toList());
+          .collect(toList());
     } catch (IOException e) {
       throw new MojoExecutionException("Unable to scan repo directory at " + path, e);
     }
@@ -300,23 +299,15 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
   String getHelmUploadUrl() {
 
-    String uploadUrl = uploadRepoStable.getUrl();
-    if (chartVersion != null
-        && chartVersion.endsWith("-SNAPSHOT")
-        && uploadRepoSnapshot != null
-        && StringUtils.isNotEmpty(uploadRepoSnapshot.getUrl())) {
-      uploadUrl = uploadRepoSnapshot.getUrl();
-    }
-
-    return uploadUrl;
+    return getHelmUploadRepo().getUrl();
   }
 
   HelmRepository getHelmUploadRepo() {
 
-    if (chartVersion != null
+    if (isNotEmpty(chartVersion)
         && chartVersion.endsWith("-SNAPSHOT")
-        && uploadRepoSnapshot != null
-        && StringUtils.isNotEmpty(uploadRepoSnapshot.getUrl())) {
+        && !isNull(uploadRepoSnapshot)
+        && isNotEmpty(uploadRepoSnapshot.getUrl())) {
       return uploadRepoSnapshot;
     }
     return uploadRepoStable;
@@ -327,28 +318,29 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
     String id = repository.getName();
 
-    if (StringUtils.isNotEmpty(repository.getUsername())) {
+    if (isNotEmpty(repository.getUsername())) {
       if (isEmpty(repository.getPassword())) {
         throw new IllegalArgumentException(
-            "Repo " + id + " has a username but no password defined.");
+            format("Repo %s has a username but no password defined.", id));
       }
-      getLog().debug("Repo " + id + " has credentials defined, skip searching in server list.");
+      getLog().debug(format("Repo %s has credentials defined, skip searching in server list.", id));
       return new PasswordAuthentication(
           repository.getUsername(), repository.getPassword().toCharArray());
     }
 
     Server server = settings.getServer(id);
-    if (server == null) {
+    if (isNull(server)) {
       getLog()
           .info(
-              "No credentials found for " + id + " in configuration or settings.xml server list.");
+              format(
+                  "No credentials found for %s in configuration or settings.xml server list.", id));
       return null;
     }
 
-    getLog().debug("Use credentials from server list for " + id + ".");
+    getLog().debug(format("Use credentials from server list for %s.", id));
     if (isEmpty(server.getUsername()) || isEmpty(server.getPassword())) {
       throw new IllegalArgumentException(
-          "Repo " + id + " was found in server list but has no username/password.");
+          format("Repo %s was found in server list but has no username/password.", id));
     }
 
     try {
@@ -396,6 +388,7 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
     final Map<String, ?> flattenOverrides = PackageUtils.flattenOverrides(overrides);
     return flattenOverrides.keySet().stream()
         .map(key -> getKeyValue(key, flattenOverrides.get(key)))
+        .flatMap(List::stream)
         .collect(joining(","));
   }
 
@@ -420,25 +413,23 @@ public abstract class AbstractHelmMojo extends AbstractMojo {
 
     return new StringBuilder(getHelmCommand(action, args))
         .append(
-            StringUtils.isNotEmpty(getReleaseName())
-                ? format(" %s ", getReleaseName())
-                : " --generate-name ")
+            isNotEmpty(getReleaseName()) ? format(" %s ", getReleaseName()) : " --generate-name ")
         .append(inputDirectory)
         .append(
-            StringUtils.isNotEmpty(getNamespace())
+            isNotEmpty(getNamespace())
                 ? format(" -n %s ", getNamespace().toLowerCase(Locale.ROOT))
                 : EMPTY)
         .append(isVerbose() ? " --debug " : EMPTY)
         .append(
-            StringUtils.isNotEmpty(getRegistryConfig())
+            isNotEmpty(getRegistryConfig())
                 ? format(" --registry-config %s ", getRegistryConfig())
                 : EMPTY)
         .append(
-            StringUtils.isNotEmpty(getRepositoryCache())
+            isNotEmpty(getRepositoryCache())
                 ? format(" --repository-cache %s ", getRepositoryCache())
                 : EMPTY)
         .append(
-            StringUtils.isNotEmpty(getRepositoryConfig())
+            isNotEmpty(getRepositoryConfig())
                 ? format(" --repository-config %s ", getRepositoryConfig())
                 : EMPTY)
         .append(getValuesOptions())

@@ -130,13 +130,6 @@ class NoopMojoTest {
   }
 
   @Test
-  @DisplayName("check to see if the default value of registryUrl is null")
-  void checkRegistryUrlDefault(NoopMojo mojo) {
-
-    assertNull(mojo.getRegistryUrl(), "the default value of registryUrl must be null");
-  }
-
-  @Test
   @DisplayName("check to see if the default value of helmVersion is " + HELM_VERSION)
   void checkHelmVersionDefault(NoopMojo mojo) {
 
@@ -161,20 +154,6 @@ class NoopMojoTest {
   void checkExcludesDefault(NoopMojo mojo) {
 
     assertNull(mojo.getExcludes(), "the default value of excludes must be null");
-  }
-
-  @Test
-  @DisplayName("check to see if the default value of registryUsername is null")
-  void checkRegistryUsernameDefault(NoopMojo mojo) {
-
-    assertNull(mojo.getRegistryUsername(), "the default value of registryUsername must be null");
-  }
-
-  @Test
-  @DisplayName("check to see if the default value of registryPassword is null")
-  void checkRegistryPasswordDefault(NoopMojo mojo) {
-
-    assertNull(mojo.getRegistryPassword(), "the default value of registryPassword must be null");
   }
 
   @Test
