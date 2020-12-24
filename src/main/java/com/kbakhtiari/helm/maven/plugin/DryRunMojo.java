@@ -1,14 +1,11 @@
 package com.kbakhtiari.helm.maven.plugin;
 
-import com.kbakhtiari.helm.maven.plugin.utils.Constants;
 import lombok.Data;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import static com.kbakhtiari.helm.maven.plugin.utils.Constants.LogUtils.LOG_TEMPLATE;
 
 @Data
 @Mojo(name = "dry-run", defaultPhase = LifecyclePhase.TEST)
@@ -27,7 +24,7 @@ public class DryRunMojo extends AbstractHelmMojo {
     }
     for (String inputDirectory : getChartDirectories(getChartDirectory())) {
 
-      getLog().info(String.format(LOG_TEMPLATE, "Perform dry-run for chart " + inputDirectory));
+      getLog().info("Perform dry-run for chart " + inputDirectory);
 
       callCli(getCommand(action, " --dry-run ", inputDirectory), "There are test failures");
     }

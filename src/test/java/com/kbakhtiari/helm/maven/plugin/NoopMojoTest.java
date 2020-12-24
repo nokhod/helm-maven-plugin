@@ -79,14 +79,6 @@ class NoopMojoTest {
   }
 
   @Test
-  @DisplayName("check to see if the default value of securityDispatcher is default")
-  void checkSecurityDispatcherDefault(NoopMojo mojo) {
-
-    assertNotNull(
-        mojo.getSecurityDispatcher(), "the default value of securityDispatcher must not be null");
-  }
-
-  @Test
   @DisplayName("check to see if the default value of chartVersion is null")
   void checkChartVersionDefault(NoopMojo mojo) {
 

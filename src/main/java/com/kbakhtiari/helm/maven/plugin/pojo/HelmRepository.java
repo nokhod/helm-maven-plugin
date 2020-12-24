@@ -30,7 +30,4 @@ public class HelmRepository {
   /** Password for basic authentication. If present credentials in server list will be ignored. */
   @Parameter(property = "helm.repo.password")
   private String password;
-
-  @Parameter(property = "helm.repo.type")
-  private RepoType type;
 }
