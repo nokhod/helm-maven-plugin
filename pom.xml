@@ -60,6 +60,7 @@
         <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <maven-scm-provider-gitexe.version>1.11.2</maven-scm-provider-gitexe.version>
 
     </properties>
 
@@ -158,25 +159,6 @@
                 </snapshotRepository>
             </distributionManagement>
             <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>${maven-gpg-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <passphrase>${env.CI_GPG_PASSPHRASE}</passphrase>
-                        </configuration>
-                    </plugin>
-                </plugins>
                 <pluginManagement>
                     <plugins>
                         <plugin>
@@ -201,9 +183,17 @@
                                 <dependency>
                                     <groupId>org.apache.maven.scm</groupId>
                                     <artifactId>maven-scm-provider-gitexe</artifactId>
-                                    <version>1.11.2</version>
+                                    <version>${maven-scm-provider-gitexe.version}</version>
                                 </dependency>
                             </dependencies>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-gpg-plugin</artifactId>
+                            <version>${maven-gpg-plugin.version}</version>
+                            <configuration>
+                                <passphrase>${env.CI_GPG_PASSPHRASE}</passphrase>
+                            </configuration>
                         </plugin>
                     </plugins>
                 </pluginManagement>
