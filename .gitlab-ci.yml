@@ -9,6 +9,8 @@ image: maven:3.6-openjdk-15-slim
   - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
   # install git for making tags
   - apt-get install -y git
+  - git config user.name "$CI_REGISTRY_USER"
+  - git config user.password "$CI_REGISTRY_USER"
 
 cache:
   key: '$CI_PROJECT_NAME'
@@ -28,7 +30,7 @@ stages:
   - deploy
   - release
 
-compile:
+.compile:
   stage: compile
   script:
     - mvn compile -Dmaven.repo.local=$MAVEN_USER_HOME
@@ -37,7 +39,7 @@ compile:
       - target/
     expire_in: 1 day
 
-unit-test:
+.unit-test:
   stage: test
   except:
     - tags
@@ -48,7 +50,7 @@ unit-test:
       - target/
     expire_in: 1 day
 
-package-jars:
+.package-jars:
   stage: package
   except:
     - tags
@@ -58,7 +60,7 @@ package-jars:
     paths:
       - target/
 
-vierfy:
+.vierfy:
   stage: verify
   before_script:
     *gpg
