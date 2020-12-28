@@ -48,8 +48,6 @@ unit-test:
 
 package-jars:
   stage: package
-  before_script:
-    *gpg
   except:
     - tags
   script:
@@ -60,8 +58,13 @@ package-jars:
 
 vierfy:
   stage: verify
+  before_script:
+    *gpg
   script:
     - mvn clean verify -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
   when: manual
 
 release:
@@ -69,6 +72,8 @@ release:
   before_script:
     *gpg
   script:
-    - mvn clean -Prelease -B -DskipTests -Darguments=-DskipTests release:prepare release:perform -Dmaven.repo.local=$MAVEN_USER_HOME
-    - mvn deploy -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn clean -Prelease -B release:prepare release:perform --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Darguments=-DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
   when: manual
