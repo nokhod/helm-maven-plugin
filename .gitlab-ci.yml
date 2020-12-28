@@ -46,46 +46,26 @@ unit-test:
       - target/
     expire_in: 1 day
 
-jar:
+package-jars:
   stage: package
   before_script:
     *gpg
   except:
     - tags
   script:
-    - mvn package gpg:sign -Prelease -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn package -Prelease -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   artifacts:
     paths:
       - target/
 
-javadoc:
-  stage: package
-  before_script:
-    *gpg
+vierfy:
+  stage: verify
   script:
-    - mvn javadoc:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
-  artifacts:
-    paths:
-      - target/
-
-source:
-  stage: package
-  before_script:
-    *gpg
-  script:
-    - mvn source:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
-  artifacts:
-    paths:
-      - target/
-
-deploy-jar:
-  stage: deploy
-  script:
-    - mvn deploy -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn clean verify -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   when: manual
 
 release:
-  stage: release
+  stage: deploy
   before_script:
     *gpg
   script:
