@@ -83,3 +83,13 @@ deploy-jar:
   script:
     - mvn deploy -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   when: manual
+
+release:
+  stage: release
+  before_script:
+    *gpg
+  script:
+    - mvn release:prepare -Prelease -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn release:perform -Prelease -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn deploy -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  when: manual
