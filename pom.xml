@@ -57,8 +57,9 @@
         <maven-plugin-annotations.version>3.6.0</maven-plugin-annotations.version>
 
         <!-- Plugins -->
-        <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-scm-api.version>1.11.2</maven-scm-api.version>
+        <maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <maven-scm-provider-gitexe.version>1.11.2</maven-scm-provider-gitexe.version>
 
@@ -184,6 +185,7 @@
                                 <localCheckout>true</localCheckout>
                                 <pushChanges>true</pushChanges>
                                 <mavenExecutorId>forked-path</mavenExecutorId>
+                                <tagNameFormat>@{project.version}</tagNameFormat>
                                 <arguments>-Dgpg.passphrase=${env.CI_GPG_PASSPHRASE}</arguments>
                             </configuration>
                             <dependencies>
@@ -191,6 +193,11 @@
                                     <groupId>org.apache.maven.scm</groupId>
                                     <artifactId>maven-scm-provider-gitexe</artifactId>
                                     <version>${maven-scm-provider-gitexe.version}</version>
+                                </dependency>
+                                <dependency>
+                                    <groupId>org.apache.maven.scm</groupId>
+                                    <artifactId>maven-scm-api</artifactId>
+                                    <version>${maven-scm-api.version}</version>
                                 </dependency>
                             </dependencies>
                         </plugin>
