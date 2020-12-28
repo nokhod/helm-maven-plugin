@@ -193,6 +193,10 @@
                             <version>${maven-gpg-plugin.version}</version>
                             <configuration>
                                 <passphrase>${env.CI_GPG_PASSPHRASE}</passphrase>
+                                <gpgArguments>
+                                    <arg>--pinentry-mode</arg>
+                                    <arg>loopback</arg>
+                                </gpgArguments>
                             </configuration>
                         </plugin>
                     </plugins>
