@@ -1,6 +1,5 @@
 package com.kbakhtiari.helm.maven.plugin;
 
-import com.kbakhtiari.helm.maven.plugin.LintMojo;
 import com.kbakhtiari.helm.maven.plugin.junit.MojoExtension;
 import com.kbakhtiari.helm.maven.plugin.junit.MojoProperty;
 import com.kbakhtiari.helm.maven.plugin.junit.SystemPropertyExtension;

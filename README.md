@@ -12,8 +12,9 @@ Visit https://docs.helm.sh for detailed information.
 
 # Why?
 
-Currently, (December 2020) there is no simple Maven plugin handling complex configurations to package existing HELM charts.
-This project was initially forked from [kiwigrid](https://github.com/kiwigrid/helm-maven-plugin) brilliant effort.
+Currently, (December 2020) there is no simple Maven plugin handling complex configurations to package existing HELM
+charts. This project was initially forked from [kiwigrid](https://github.com/kiwigrid/helm-maven-plugin) brilliant
+effort.
 
 # How?
 
@@ -23,10 +24,11 @@ URL. Next to that it is possible to specify a local Helm binary. In all cases He
 Add following dependency to your pom.xml:
 
 ```xml
+
 <dependency>
-  <groupId>com.kbakhtiari</groupId>
-  <artifactId>helm-maven-plugin</artifactId>
-  <version>0.0.1</version>
+    <groupId>com.kbakhtiari</groupId>
+    <artifactId>helm-maven-plugin</artifactId>
+    <version>0.0.1</version>
 </dependency>
 ```
 
@@ -37,41 +39,43 @@ Add following dependency to your pom.xml:
 The default setting is to construct the Helm download URL based upon the detected OS and architecture:
 
 ```xml
+
 <build>
-  <plugins>
-    <plugin>
-      <groupId>com.kbakhtiari</groupId>
-      <artifactId>helm-maven-plugin</artifactId>
-      <version>0.0.1</version>
-      <configuration>
-        <chartDirectory>${project.basedir}</chartDirectory>
-        <chartVersion>${project.version}</chartVersion>
-        <helmVersion>3.4.2</helmVersion>
-      </configuration>
-    </plugin>
-  </plugins>
+    <plugins>
+        <plugin>
+            <groupId>com.kbakhtiari</groupId>
+            <artifactId>helm-maven-plugin</artifactId>
+            <version>0.0.1</version>
+            <configuration>
+                <chartDirectory>${project.basedir}</chartDirectory>
+                <chartVersion>${project.version}</chartVersion>
+                <helmVersion>3.4.2</helmVersion>
+            </configuration>
+        </plugin>
+    </plugins>
 </build>
 ```
 
 ### Usage with Downloaded Binary
 
 ```xml
+
 <build>
-  <plugins>
-  ...
-    <plugin>
-      <groupId>com.kbakhtiari</groupId>
-      <artifactId>helm-maven-plugin</artifactId>
-      <version>0.0.1</version>
-      <configuration>
-        <chartDirectory>${project.basedir}</chartDirectory>
-        <chartVersion>${project.version}</chartVersion>
-        <!-- This is the related section when using binary download -->
-        <helmDownloadUrl>https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz</helmDownloadUrl>
-      </configuration>
-    </plugin>
-  ...
-  </plugins>
+    <plugins>
+        ...
+        <plugin>
+            <groupId>com.kbakhtiari</groupId>
+            <artifactId>helm-maven-plugin</artifactId>
+            <version>0.0.1</version>
+            <configuration>
+                <chartDirectory>${project.basedir}</chartDirectory>
+                <chartVersion>${project.version}</chartVersion>
+                <!-- This is the related section when using binary download -->
+                <helmDownloadUrl>https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz</helmDownloadUrl>
+            </configuration>
+        </plugin>
+        ...
+    </plugins>
 </build>
 ```
 
@@ -80,22 +84,23 @@ The default setting is to construct the Helm download URL based upon the detecte
 When `useLocalHelmBinary` is enabled, the plugin by default will search for the `helm` executable in `PATH`:
 
 ```xml
+
 <build>
-  <plugins>
-  ...
-    <plugin>
-      <groupId>com.kbakhtiari</groupId>
-      <artifactId>helm-maven-plugin</artifactId>
-      <version>0.0.1</version>
-      <configuration>
-        <chartDirectory>${project.basedir}</chartDirectory>
-        <chartVersion>${project.version}</chartVersion>
-        <!-- This is the related section to use local binary with auto-detection enabled. -->
-        <useLocalHelmBinary>true</useLocalHelmBinary>
-      </configuration>
-    </plugin>
-  ...
-  </plugins>
+    <plugins>
+        ...
+        <plugin>
+            <groupId>com.kbakhtiari</groupId>
+            <artifactId>helm-maven-plugin</artifactId>
+            <version>0.0.1</version>
+            <configuration>
+                <chartDirectory>${project.basedir}</chartDirectory>
+                <chartVersion>${project.version}</chartVersion>
+                <!-- This is the related section to use local binary with auto-detection enabled. -->
+                <useLocalHelmBinary>true</useLocalHelmBinary>
+            </configuration>
+        </plugin>
+        ...
+    </plugins>
 </build>
 ```
 
@@ -103,24 +108,25 @@ The following is an example configuration that explicitly sets the directory in 
 and disables the auto-detection feature:
 
 ```xml
+
 <build>
-  <plugins>
-  ...
-    <plugin>
-      <groupId>com.kbakhtiari</groupId>
-      <artifactId>helm-maven-plugin</artifactId>
-      <version>0.0.1</version>
-      <configuration>
-        <chartDirectory>${project.basedir}</chartDirectory>
-        <chartVersion>${project.version}</chartVersion>
-        <!-- This is the related section to use local binary with auto-detection disabled. -->
-        <useLocalHelmBinary>true</useLocalHelmBinary>
-        <autoDetectLocalHelmBinary>false</autoDetectLocalHelmBinary>
-        <helmExecutableDirectory>/usr/local/bin</helmExecutableDirectory>        
-      </configuration>
-    </plugin>
-  ...
-  </plugins>
+    <plugins>
+        ...
+        <plugin>
+            <groupId>com.kbakhtiari</groupId>
+            <artifactId>helm-maven-plugin</artifactId>
+            <version>0.0.1</version>
+            <configuration>
+                <chartDirectory>${project.basedir}</chartDirectory>
+                <chartVersion>${project.version}</chartVersion>
+                <!-- This is the related section to use local binary with auto-detection disabled. -->
+                <useLocalHelmBinary>true</useLocalHelmBinary>
+                <autoDetectLocalHelmBinary>false</autoDetectLocalHelmBinary>
+                <helmExecutableDirectory>/usr/local/bin</helmExecutableDirectory>
+            </configuration>
+        </plugin>
+        ...
+    </plugins>
 </build>
 ```
 
@@ -172,13 +178,13 @@ and disables the auto-detection feature:
                 <!-- extra value settings for the lint command -->
                 <values>
                     <overrides>
-                      {
+                        {
                         "component1":{
-                            "install": {
-                                "path": "/opt/component1"
-                            }
+                        "install": {
+                        "path": "/opt/component1"
                         }
-                      }
+                        }
+                        }
                     </overrides>
                     <yamlFile>${project.basedir}/src/test/resources/myOverrides.yaml</yamlFile>
                 </values>
@@ -247,24 +253,25 @@ To keep your pom files small you can use 'helm' packaging. This binds `helm:init
 to the test phase, `helm:package` to the package phase and `helm:upload` to the deploy phase.
 
 ```xml
+
 <pom>
-  <artifactId>my-helm-charts</artifactId>
-  <version>0.0.1</version>
-  <packaging>helm</packaging>
-  ...
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>com.kbakhtiari</groupId>
-        <artifactId>helm-maven-plugin</artifactId>
-        <!-- Mandatory when you use a custom lifecycle -->
-        <extensions>true</extensions>
-        <configuration>
-          ...
-        </configuration>
-      </plugin>
-    </plugins>
-    ....
-  </build>
+    <artifactId>my-helm-charts</artifactId>
+    <version>0.0.1</version>
+    <packaging>helm</packaging>
+    ...
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.kbakhtiari</groupId>
+                <artifactId>helm-maven-plugin</artifactId>
+                <!-- Mandatory when you use a custom lifecycle -->
+                <extensions>true</extensions>
+                <configuration>
+                    ...
+                </configuration>
+            </plugin>
+        </plugins>
+        ....
+    </build>
 </pom>
 ```

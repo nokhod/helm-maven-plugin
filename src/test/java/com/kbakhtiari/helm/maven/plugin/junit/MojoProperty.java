@@ -1,7 +1,5 @@
 package com.kbakhtiari.helm.maven.plugin.junit;
 
-
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
