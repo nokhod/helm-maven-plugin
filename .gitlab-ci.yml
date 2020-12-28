@@ -14,6 +14,11 @@ image: maven:3.6-openjdk-15-slim
   - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
+  - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - git config --global user.email "khodabakhsh.ba@gmail.com"
+  - git config --global user.name "Khodabakhsh Bakhtiari"
+  - ssh git@gitlab.com
 
 cache:
   key: '$CI_PROJECT_NAME'
