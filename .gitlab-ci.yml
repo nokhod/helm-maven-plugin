@@ -7,6 +7,8 @@ image: maven:3.6-openjdk-15-slim
   - export GPG_TTY=$(tty)
   - gpg --import $CI_GPG_PUBLIC_KEY
   - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
+  # install git for making tags
+  - apt-get install -y git
 
 cache:
   key: '$CI_PROJECT_NAME'
