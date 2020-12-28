@@ -19,6 +19,7 @@ image: maven:3.6-openjdk-15-slim
   - git config --global user.email "khodabakhsh.ba@gmail.com"
   - git config --global user.name "Khodabakhsh Bakhtiari"
   - ssh git@gitlab.com
+  - git pull
 
 cache:
   key: '$CI_PROJECT_NAME'
