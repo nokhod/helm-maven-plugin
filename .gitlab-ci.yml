@@ -89,6 +89,6 @@ release:
   before_script:
     *gpg
   script:
-    - mvn clean -B -DskipTests -Darguments=-DskipTests release:prepare release:perform -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn clean -Prelease -B -DskipTests -Darguments=-DskipTests release:prepare release:perform -Dmaven.repo.local=$MAVEN_USER_HOME
     - mvn deploy -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   when: manual
