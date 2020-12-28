@@ -1,7 +1,7 @@
 image: maven:3.6-openjdk-15-slim
 
 .template: &gpg
-# install gnupg version 2 and importing the certificate
+  # install gnupg version 2 and importing the certificate
   - apt-get update
   - apt-get install -y gnupg2
   - export GPG_TTY=$(tty)
