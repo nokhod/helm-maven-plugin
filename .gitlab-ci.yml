@@ -18,9 +18,6 @@ stages:
   - deploy
   - release
 
-variables:
-  GIT_SUBMODULE_STRATEGY: recursive
-
 compile:
   stage: compile
   script:
@@ -41,12 +38,28 @@ unit-test:
       - target/
     expire_in: 1 day
 
-package:
+package-sign-jar:
   stage: package
   except:
     - tags
   script:
-    - mvn package -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn package gpg:sign -Prelease -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+
+package-sign-javadoc:
+  stage: package
+  script:
+    - mvn javadoc:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+
+package-sign-source:
+  stage: package
+  script:
+    - mvn source:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
   artifacts:
     paths:
       - target/
@@ -54,5 +67,5 @@ package:
 deploy-jar:
   stage: deploy
   script:
-    - mvn deploy --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn deploy  -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   when: manual
