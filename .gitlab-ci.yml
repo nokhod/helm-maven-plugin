@@ -7,6 +7,10 @@ cache:
 
 before_script:
   - export MAVEN_USER_HOME=`pwd`/.maven
+  # install gnupg version 2
+  - apt-get update
+  - apt-get install gnupg2
+  - gpg --import $CI_GPG_PUBLIC_KEY
 
 stages:
   - initialize
@@ -38,7 +42,7 @@ unit-test:
       - target/
     expire_in: 1 day
 
-package-sign-jar:
+jar:
   stage: package
   except:
     - tags
@@ -48,7 +52,7 @@ package-sign-jar:
     paths:
       - target/
 
-package-sign-javadoc:
+javadoc:
   stage: package
   script:
     - mvn javadoc:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
@@ -56,7 +60,7 @@ package-sign-javadoc:
     paths:
       - target/
 
-package-sign-source:
+source:
   stage: package
   script:
     - mvn source:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
@@ -67,5 +71,5 @@ package-sign-source:
 deploy-jar:
   stage: deploy
   script:
-    - mvn deploy  -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+    - mvn deploy -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   when: manual
