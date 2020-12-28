@@ -9,8 +9,11 @@ image: maven:3.6-openjdk-15-slim
   - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
   # install git for making tags
   - apt-get install -y git
-  - git config user.name $CI_DEPLOY_USER
-  - git config user.password $CI_DEPLOY_PASSWORD
+  - command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
 
 cache:
   key: '$CI_PROJECT_NAME'
