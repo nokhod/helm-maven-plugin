@@ -1,13 +1,12 @@
 image: maven:3.6-openjdk-15-slim
 
-
 .template: &gpg
 # install gnupg version 2 and importing the certificate
-apt-get update
-apt-get install -y gnupg2
-export GPG_TTY=$(tty)
-gpg --import $CI_GPG_PUBLIC_KEY
-gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
+  - apt-get update
+  - apt-get install -y gnupg2
+  - export GPG_TTY=$(tty)
+  - gpg --import $CI_GPG_PUBLIC_KEY
+  - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
 
 cache:
   key: '$CI_PROJECT_NAME'
@@ -50,7 +49,7 @@ unit-test:
 jar:
   stage: package
   before_script:
-    <<: *gpg
+    *gpg
   except:
     - tags
   script:
@@ -62,7 +61,7 @@ jar:
 javadoc:
   stage: package
   before_script:
-    <<: *gpg
+    *gpg
   script:
     - mvn javadoc:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
   artifacts:
@@ -72,7 +71,7 @@ javadoc:
 source:
   stage: package
   before_script:
-    <<: *gpg
+    *gpg
   script:
     - mvn source:jar gpg:sign -Prelease -Dmaven.repo.local=$MAVEN_USER_HOME
   artifacts:
