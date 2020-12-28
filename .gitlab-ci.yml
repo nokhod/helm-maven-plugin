@@ -9,8 +9,8 @@ image: maven:3.6-openjdk-15-slim
   - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
   # install git for making tags
   - apt-get install -y git
-  - git config user.name "$CI_DEPLOY_USER"
-  - git config user.password "$CI_DEPLOY_PASSWORD"
+  - git config user.name $CI_DEPLOY_USER
+  - git config user.password $CI_DEPLOY_PASSWORD
 
 cache:
   key: '$CI_PROJECT_NAME'
