@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -197,75 +197,6 @@
                                     <arg>--pinentry-mode</arg>
                                     <arg>loopback</arg>
                                 </gpgArguments>
-                            </configuration>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
-        <profile>
-            <id>test</id>
-            <distributionManagement>
-                <repository>
-                    <id>gitlab-maven-${env.CI_PROJECT_ID}</id>
-                    <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
-                </repository>
-                <snapshotRepository>
-                    <id>gitlab-maven-${env.CI_PROJECT_ID}</id>
-                    <url>${env.CI_SERVER_URL}/api/v4/projects/${env.CI_PROJECT_ID}/packages/maven</url>
-                </snapshotRepository>
-            </distributionManagement>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                            <configuration>
-                                <verbose>true</verbose>
-                                <releaseName>${project.artifactId}</releaseName>
-                                <chartVersion>${project.version}</chartVersion>
-                                <helmVersion>${helm.version}</helmVersion>
-                                <namespace>${env.CI_SPRING_PROFILE}</namespace>
-                                <chartDirectory>${env.CI_CHART_DIRECTORY}</chartDirectory>
-                                <uploadRepoStable>
-                                    <name>gitlab</name>
-                                    <url>${env.CI_REGISTRY}/${env.CI_PROJECT_NAMESPACE}</url>
-                                    <username>${env.CI_REGISTRY_USER}</username>
-                                    <password>${env.CI_REGISTRY_PASSWORD}</password>
-                                </uploadRepoStable>
-                                <uploadRepoSnapshot>
-                                    <name>gitlab</name>
-                                    <url>${env.CI_REGISTRY}/${env.CI_PROJECT_NAMESPACE}</url>
-                                    <username>${env.CI_REGISTRY_USER}</username>
-                                    <password>${env.CI_REGISTRY_PASSWORD}</password>
-                                </uploadRepoSnapshot>
-                                <values>
-                                    <overrides>
-                                        {
-                                        "namespace":"${env.CI_SPRING_PROFILE}",
-                                        "image":{
-                                        "tag":"${env.CI_SPRING_PROFILE}-${env.CI_COMMIT_SHORT_SHA}",
-                                        "repository":"${env.CI_REGISTRY_IMAGE}"
-                                        },
-                                        "ingress":{
-                                        "enabled":"true",
-                                        "annotations":{
-                                        "^external-dns.alpha.kubernetes.io/target^":"${env.NGINX_INGRESS_DOMAIN}",
-                                        "^nginx.ingress.kubernetes.io/rewrite-target^":"/$2"
-                                        }
-                                        },
-                                        "imageCredentials":{
-                                        "name":"${project.artifactId}-container-registry",
-                                        "registry":"${env.CI_REGISTRY}",
-                                        "username":"${env.CI_DEPLOY_USER}",
-                                        "password":"${env.CI_DEPLOY_PASSWORD}",
-                                        "email":"khodabakhsh.bakhtiari@nl.abnamro.com"
-                                        }
-                                        }
-                                    </overrides>
-                                </values>
                             </configuration>
                         </plugin>
                     </plugins>
