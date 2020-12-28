@@ -9,7 +9,7 @@ before_script:
   - export MAVEN_USER_HOME=`pwd`/.maven
   # install gnupg version 2
   - apt-get update
-  - apt-get install gnupg2
+  - apt-get install -y gnupg2
   - gpg --import $CI_GPG_PUBLIC_KEY
 
 stages:
