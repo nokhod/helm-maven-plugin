@@ -41,7 +41,7 @@
         <connection>scm:git:git://gitlab.com:ikbengeweldig/helm-maven-plugin.git</connection>
         <developerConnection>scm:git:git@gitlab.com:ikbengeweldig/helm-maven-plugin.git</developerConnection>
         <url>https://gitlab.com/ikbengeweldig/helm-maven-plugin/-/tree/master</url>
-        <tag>0.0.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
