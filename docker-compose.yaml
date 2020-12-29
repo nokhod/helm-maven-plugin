@@ -1,0 +1,23 @@
+version: '3.3'
+services:
+  registry:
+    container_name: registry
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+    environment:
+      REGISTRY_AUTH: "{htpasswd: {realm: localhost, path: /etc/docker/registry/auth.htpasswd}}"
+    expose:
+      - 5000
+    image: registry
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./auth.htpasswd:/etc/docker/registry/auth.htpasswd
+  web:
+    image: nginx
+    volumes:
+      - ./helm-dist:/usr/share/nginx/html
+    ports:
+      - "8080:80"
