@@ -1,0 +1,110 @@
+image: maven:3.6-openjdk-15-slim
+
+# install gnupg version 2 and importing the certificate
+.gpg: &gpg
+  - apt-get update
+  - apt-get install -y gnupg2
+  - export GPG_TTY=$(tty)
+  - gpg --import $CI_GPG_PUBLIC_KEY
+  - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
+# install git for making tags
+.git: &git
+  - apt-get install -y git
+  - command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  - git config --global user.email "khodabakhsh.ba@gmail.com"
+  - git config --global user.name "Khodabakhsh Bakhtiari"
+  - ssh git@gitlab.com
+  - git fetch
+  - git checkout $CI_COMMIT_REF_NAME
+
+cache:
+  key: '$CI_PROJECT_NAME'
+  paths:
+    - .maven/
+
+before_script:
+  - export MAVEN_USER_HOME=`pwd`/.maven
+
+stages:
+  - initialize
+  - validate
+  - compile
+  - test
+  - package
+  - verify
+  - deploy
+  - release
+
+compile:
+  stage: compile
+  script:
+    - mvn compile -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 day
+
+unit-test:
+  stage: test
+  except:
+    - tags
+  script:
+    - mvn test -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+    expire_in: 1 day
+
+package:
+  stage: package
+  except:
+    - tags
+  script:
+    - mvn package -Prelease -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+
+vierfy:
+  stage: verify
+  only:
+    - develop
+  before_script:
+    *gpg
+  script:
+    - mvn clean verify -Prelease --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+  when: manual
+
+release-development:
+  stage: deploy
+  except:
+    - master
+  script:
+    - mvn deploy --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+  when: manual
+
+release:
+  stage: deploy
+  only:
+    - master
+  before_script:
+    - *gpg
+    - *git
+  script:
+    - mvn clean -Prelease -B release:prepare release:perform --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Darguments=-DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - target/
+  when: manual
