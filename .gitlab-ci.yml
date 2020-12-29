@@ -1,13 +1,14 @@
 image: maven:3.6-openjdk-15-slim
 
-.template: &gpg
-  # install gnupg version 2 and importing the certificate
+# install gnupg version 2 and importing the certificate
+.gpg: &gpg
   - apt-get update
   - apt-get install -y gnupg2
   - export GPG_TTY=$(tty)
   - gpg --import $CI_GPG_PUBLIC_KEY
   - gpg --import --pinentry-mode=loopback --passphrase=$CI_GPG_PASSPHRASE $CI_GPG_SECRET_KEY
-  # install git for making tags
+# install git for making tags
+.git: &git
   - apt-get install -y git
   - command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client -y )
   - eval $(ssh-agent -s)
@@ -84,7 +85,8 @@ stages:
 release:
   stage: deploy
   before_script:
-    *gpg
+    - *gpg
+    - *git
   script:
     - mvn clean -Prelease -B release:prepare release:perform --settings "$CI_GITLAB_MAVEN_SETTING" -DskipTests -Darguments=-DskipTests -Dmaven.repo.local=$MAVEN_USER_HOME
   artifacts:
